@@ -27,6 +27,5 @@ project_proposal:
 	@echo $(TEMPLATE)
 	$(MAKE) -C proposal
 
-
 clean:
-	rm -f *.html *.pdf *.tex
+	rm -f $(BUILD_DIR)/*.html $(BUILD_DIR)/*.pdf $(BUILD_DIR)/*.tex
