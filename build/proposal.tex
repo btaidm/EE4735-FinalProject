@@ -1,7 +1,7 @@
-\documentclass[]{article}
+\documentclass[12pt,]{article}
 \usepackage{times}
 \usepackage{setspace}
-\setstretch{2}
+\setstretch{1.5}
 \usepackage{amssymb,amsmath}
 \usepackage{ifxetex,ifluatex}
 \usepackage{fixltx2e} % provides \textsubscript
@@ -26,6 +26,7 @@
 \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
 }{}
 \usepackage[margin=1in]{geometry}
+\usepackage{longtable,booktabs}
 \ifxetex
 \usepackage[setpagesize=false, % page size defined by xetex
             unicode=false, % unicode breaks when used with xetex
@@ -59,11 +60,43 @@
 \begin{document}
 \maketitle
 
-\doublespacing
+% \doublespacing
 \section{Overview}\label{overview}
 
 The overall goal of this project is to create a robot that will follow
 the first object it sees that is at least 6 ft in diameter. It is a
-combination of the the ultrasonic radar and the navi bot project.
-\singlespacing
+combination of the the Ultrasonic Radar Towers and the Navi bot project.
+It will use at least 2 Ultrasonic sensors for tracking the object and
+the robot base for movement. However, unlike the Radar Towers, floating
+point operations will be allowed where need, but there will be a bias
+against them.
+
+\section{Hardware}\label{hardware}
+
+\begin{longtable}[c]{@{}ll@{}}
+\toprule
+\begin{minipage}[b]{0.20\columnwidth}\raggedright\strut
+Who
+\strut\end{minipage} &
+\begin{minipage}[b]{0.46\columnwidth}\raggedright\strut
+What
+\strut\end{minipage}\tabularnewline
+\midrule
+\endhead
+\begin{minipage}[t]{0.20\columnwidth}\raggedright\strut
+Lab
+\strut\end{minipage} &
+\begin{minipage}[t]{0.46\columnwidth}\raggedright\strut
+MSP430 Dev. Board\\2-3 Ultrasonic Pingers\\Sabertooth Controller\\Mobile
+Robot Base\\Level Shifter\\Other Small Components\\
+\strut\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.20\columnwidth}\raggedright\strut
+Us
+\strut\end{minipage} &
+\begin{minipage}[t]{0.46\columnwidth}\raggedright\strut
+Tools and our Brains
+\strut\end{minipage}\tabularnewline
+\bottomrule
+\end{longtable}
+% \singlespacing
 \end{document}

@@ -178,11 +178,11 @@ $if(lof)$
 \listoffigures
 $endif$
 $if(linestretch)$
-\doublespacing
+% \doublespacing
 $endif$
 $body$
 $if(linestretch)$
-\singlespacing
+% \singlespacing
 $endif$
 $if(natbib)$
 $if(biblio-files)$
