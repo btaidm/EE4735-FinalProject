@@ -12,20 +12,55 @@
 ## -	Doing `make clean` will remove all the .tex, .html, and .pdf files
 ## 	in your working directory. Make sure you do not have files in these
 ##	formats that you want to keep!
-
-
-
 include paper-extras/extras.mk
 
-export BUILD_DIR = $(realpath $(CURDIR)/build)
+export PAPER_BUILD_DIR = $(realpath $(CURDIR))/build-paper
 
-all:	project_proposal
+CC 			= msp430-elf-gcc
+LD 			= msp430-elf-gcc
+
+DEVICE 		= msp430f2274
+
+IDIR 		= include
+LDIR 		= lib
+
+CF_ALL 		= -g -O2
+LF_ALL 		= -L$(LDIR) -T $(DEVICE).ld
+
+BUILD_PRE	:= build
+MODULES 	= main
+SRC_DIR 	:= $(addprefix src/,$(MODULES))
+BUILD_DIR 	:= $(addprefix $(BUILD_PRE)/,$(MODULES))
+
+SRC 		:= $(foreach sdir,$(SRC_DIR), $(wildcard $(sdir)/*.c))
+OBJ			:= $(patsubst src/%.c,build/%.o,$(SRC))
+INCLUDES	:= -I$(IDIR)
+
+vpath %.c $(SRC_DIR)
+
+define make-goal
+$1/%.o: %.c
+	$(CC) $(CF_ALL) $(INCLUDES) -c $$< -o $$@
+endef
+
+.PHONY: all checkdirs clean project_proposal
+
+all: checkdirs build/stalker.out
+
+build/stalker.out: $(OBJ)
+	$(LD) $^ -o $@
+
+checkdirs: $(BUILD_DIR)
+
+$(BUILD_DIR):
+	@mkdir -p $@
 
 project_proposal:
-	@echo $(CSL)
-	@echo $(BIB)
-	@echo $(TEMPLATE)
 	$(MAKE) -C proposal
 
 clean:
-	rm -f $(BUILD_DIR)/*.html $(BUILD_DIR)/*.pdf $(BUILD_DIR)/*.tex
+	rm -rf $(BUILD_DIR)
+	$(MAKE) -C proposal $@
+
+$(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
+
