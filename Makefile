@@ -16,16 +16,21 @@ include paper-extras/extras.mk
 
 export PAPER_BUILD_DIR = $(realpath $(CURDIR))/build-paper
 
-CC 			= msp430-elf-gcc
-LD 			= msp430-elf-gcc
+CC 			= msp430-gcc
+LD 			= msp430-gcc
 
 DEVICE 		= msp430f2274
+
+MSP430_DIR  = /opt/msp430-toolchain/msp430-none-elf
+
+DEVICE_IDIR = $(MSP430_DIR)/include
+DEVICE_LDIR = $(MSP430_DIR)/lib
 
 IDIR 		= include
 LDIR 		= lib
 
 CF_ALL 		= -g -O2
-LF_ALL 		= -L$(LDIR) -T $(DEVICE).ld
+LF_ALL 		= -L$(LDIR) -L$(DEVICE_LDIR) -T $(DEVICE).ld
 
 BUILD_PRE	:= build
 MODULES 	= main
@@ -34,7 +39,7 @@ BUILD_DIR 	:= $(addprefix $(BUILD_PRE)/,$(MODULES))
 
 SRC 		:= $(foreach sdir,$(SRC_DIR), $(wildcard $(sdir)/*.c))
 OBJ			:= $(patsubst src/%.c,build/%.o,$(SRC))
-INCLUDES	:= -I$(IDIR)
+INCLUDES	:= -I$(IDIR) -I$(DEVICE_IDIR)
 
 vpath %.c $(SRC_DIR)
 
