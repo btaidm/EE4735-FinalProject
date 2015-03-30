@@ -21,19 +21,19 @@ LD 			= msp430-gcc
 
 DEVICE 		= msp430f2274
 
-MSP430_DIR  = /opt/msp430-toolchain/msp430-none-elf
+MSP430_DIR  = /opt/msp430-toolchain/include
 
-DEVICE_IDIR = $(MSP430_DIR)/include
-DEVICE_LDIR = $(MSP430_DIR)/lib
+DEVICE_IDIR = $(MSP430_DIR)
+DEVICE_LDIR = $(MSP430_DIR)
 
 IDIR 		= include
 LDIR 		= lib
 
-CF_ALL 		= -g -O2
-LF_ALL 		= -L$(LDIR) -L$(DEVICE_LDIR) -T $(DEVICE).ld -g
+CF_ALL 		= -g -O2  -mmcu=$(DEVICE) --std=c99
+LF_ALL 		= -L$(LDIR) -L$(DEVICE_LDIR) -T $(DEVICE).ld -g -mmcu=$(DEVICE) --std=c99
 
 BUILD_PRE	:= build
-MODULES 	= main
+MODULES 	= pinger
 SRC_DIR 	:= $(addprefix src/,$(MODULES))
 BUILD_DIR 	:= $(addprefix $(BUILD_PRE)/,$(MODULES))
 
