@@ -18,16 +18,22 @@
 //  Built with Code Composer Studio v5
 //***************************************************************************************
 
-#include "msp430x22x4.h"
+#include <msp430x22x4.h>
+#include <stdint.h>
+
+#define MAX_TICKS 10000        // Blink length (loop passes)
 
 void main(void)
 {
-    WDTCTL = WDTPW | WDTHOLD;       // Stop watchdog timer
-    P1DIR |= 0x01;                  // Set P1.0 to output direction
-    while (1) {
-        /* Wait for 200000 cycles */
-        __delay_cycles(200000);
-        /* Toggle P1.0 output */
-        P1OUT ^= 0x01;
+    WDTCTL = WDTPW + WDTHOLD;                 // Stop watchdog timer
+    volatile int16_t i;                       // Generic loop idx
+
+    P1DIR |= 0x01;                            // Set pin P1.0 to output
+
+    while (1)                                 // Infinite loop
+    {
+        P1OUT ^= 0x01;                          // Toggle P1.0 = toggle LED
+
+        for (i = MAX_TICKS; i != 0; i--) {} ;   // Empty S-Ware delay loop
     }
 }

@@ -30,7 +30,7 @@ IDIR 		= include
 LDIR 		= lib
 
 CF_ALL 		= -g -O2
-LF_ALL 		= -L$(LDIR) -L$(DEVICE_LDIR) -T $(DEVICE).ld
+LF_ALL 		= -L$(LDIR) -L$(DEVICE_LDIR) -T $(DEVICE).ld -g
 
 BUILD_PRE	:= build
 MODULES 	= main
@@ -48,12 +48,12 @@ $1/%.o: %.c
 	$(CC) $(CF_ALL) $(INCLUDES) -c $$< -o $$@
 endef
 
-.PHONY: all checkdirs clean project_proposal
+.PHONY: all checkdirs clean project_proposal debug
 
 all: checkdirs build/stalker.out
 
 build/stalker.out: $(OBJ)
-	$(LD) $^ -o $@
+	$(LD) $(LF_ALL) $^ -o $@
 
 checkdirs: $(BUILD_DIR)
 
@@ -66,6 +66,10 @@ project_proposal:
 clean:
 	rm -rf $(BUILD_DIR)
 	$(MAKE) -C proposal $@
+
+debug: all
+	mspdebug rf2500 --fet-force-id MSP430F2274 gdb &
+
 
 $(foreach bdir,$(BUILD_DIR),$(eval $(call make-goal,$(bdir))))
 
