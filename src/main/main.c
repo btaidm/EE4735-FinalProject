@@ -5,13 +5,13 @@
 
 #define MAX_TICKS 10000        // Blink length (loop passes)
 
-volatile pinger_t leftPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 1}, \
-                                 .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 2},
+volatile pinger_t leftPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 0}, \
+                                 .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 4},
                                  .echoTime = 0
                                };
 
 volatile pinger_t rightPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 1}, \
-                                  .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 2},
+                                  .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 3},
                                   .echoTime = 0
                                 };
 
@@ -28,6 +28,7 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
 
             TACCTL2 &= ~CCIFG;
             TACCTL2 ^= CM1 | CM0;
+            P1OUT ^= 0x01;                            // Set pin P1.0 to output
 
             switch (edge_2)
             {
@@ -51,7 +52,7 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
 
                     totalTime += (currStamp - reTime_2);
                     leftPinger.echoTime = totalTime;
-                    __low_power_mode_off_on_exit();
+                    //__low_power_mode_off_on_exit();
                     break;
                 }
             }
@@ -69,7 +70,7 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
             TACCTL1 &= ~CCIFG;
             TACCTL1 ^= CM1 | CM0;
 
-            switch (edge)
+            switch (edge_1)
             {
                 case 0:
                 {
@@ -90,7 +91,7 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
                     }
 
                     totalTime += (currStamp - reTime_1);
-                    pingerTime1 = totalTime;
+                    rightPinger.echoTime = totalTime;
                     __low_power_mode_off_on_exit();
                     break;
                 }
@@ -118,6 +119,7 @@ void main(void)
     WDTCTL = WDTPW | WDTHOLD;                 // Stop watchdog timer
     setup_timer();
     setup_pinger(leftPinger);
+    P1DIR |= 0x01;                            // Set pin P1.0 to output
 
     while ( 1)
     {
@@ -126,6 +128,7 @@ void main(void)
 
         //Go to low Power Mode
         _BIS_SR(LPM1_bits | GIE);
+
         // Calc new location and send to base
 
     }

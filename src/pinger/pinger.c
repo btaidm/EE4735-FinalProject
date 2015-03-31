@@ -12,9 +12,9 @@ void setup_pinger(pinger_t pinger)
 
 void start_pinger(pinger_t pinger)
 {
-    *(pinger.trigger.out) ^= ( 0x01 << pinger.trigger.pin);
+    *(pinger.trigger.out) |= ( 0x01 << pinger.trigger.pin);
 
-    int i = 10;
+    int i = 100;
 
     while (i--);
 
