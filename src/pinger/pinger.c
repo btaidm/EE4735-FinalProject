@@ -12,9 +12,10 @@ void setup_pinger(pinger_t pinger)
 
 void start_pinger(pinger_t pinger)
 {
+    P1OUT ^= 0x01;
     *(pinger.trigger.out) |= ( 0x01 << pinger.trigger.pin);
 
-    int i = 100;
+    volatile uint16_t i = 1;
 
     while (i--);
 
