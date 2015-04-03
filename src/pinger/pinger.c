@@ -1,4 +1,4 @@
-#include <msp430f2274.h>
+#include <msp430x22x4.h>
 #include <stdint.h>
 #include "pinger.h"
 

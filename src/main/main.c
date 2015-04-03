@@ -6,12 +6,12 @@
 #define MAX_TICKS 10000        // Blink length (loop passes)
 
 volatile pinger_t leftPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 1}, \
-                                 .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 3},
+                                 .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 3}, \
                                  .echoTime = 0
                                };
 
 volatile pinger_t rightPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 0}, \
-                                  .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 2},
+                                  .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 2}, \
                                   .echoTime = 0
                                 };
 
@@ -46,7 +46,7 @@ __INTERRUPT(TIMERA0_VECTOR) void timara0_isr(void)
 
             totalTime += (currStamp - reTime_1);
             rightPinger.echoTime = totalTime;
-            _low_power_mode_off_on_exit();
+            __low_power_mode_off_on_exit();
             //start_pinger(leftPinger);
             break;
         }
@@ -100,7 +100,13 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
         }
 
         case TAIV_TACCR2:
+          break;
         case TAIV_TAIFG:
+        {
+            TACTL &= ~(TAIE | TAIFG);
+            start_pinger(rightPinger);
+            break;
+        }
         default:
             break;
     }
@@ -108,7 +114,7 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
 
 void setup_timer()
 {
-    TACTL = TASSEL_2 | ID_0 | MC_2;
+    TACTL   = TASSEL_2 | ID_0 | MC_2;
     TACCTL0 = CM_1 | CCIS_1 | SCS | CAP | CCIE;
     TACCTL1 = CM_1 | CCIS_1 | CAP | SCS | CCIE;
     //TACCTL2 = CM0 | CCIS_1 | CAP | SCS | CCIE;
@@ -118,12 +124,15 @@ void setup_timer()
 void main(void)
 {
     WDTCTL = WDTPW | WDTHOLD;                 // Stop watchdog timer
+    P2SEL = 0;
     setup_timer();
     setup_pinger(leftPinger);
     setup_pinger(rightPinger);
     P1DIR |= 0x01;                            // Set pin P1.0 to output
     P1OUT &= ~0x01;
 
+    //P2SEL2 = 0;
+    
     while ( 1)
     {
         // Get the Pinger Distances
@@ -132,13 +141,13 @@ void main(void)
         //Go to low Power Mode
 
         // Calc new location and send to base
-        volatile uint16_t i = 10000;
+        TACTL   |= TAIE;
+        __enable_interrupt(); 
+        __low_power_mode_1();    
+
+         volatile uint16_t i = 1000;
 
         while (i--);
-
-        start_pinger(rightPinger);
-        __enable_interrupt();
-        __low_power_mode_3();
         // i = 10000;
 
         // while (i--);
