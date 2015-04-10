@@ -2,6 +2,10 @@
 #include <stdint.h>
 #include "pinger.h"
 #include "helper.h"
+#include "uart.h"
+#include <string.h>
+
+char temp[35] = {0};
 
 #define MAX_TICKS 10000        // Blink length (loop passes)
 
@@ -100,13 +104,15 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
         }
 
         case TAIV_TACCR2:
-          break;
+            break;
+
         case TAIV_TAIFG:
         {
             TACTL &= ~(TAIE | TAIFG);
             start_pinger(rightPinger);
             break;
         }
+
         default:
             break;
     }
@@ -132,7 +138,7 @@ void main(void)
     P1OUT &= ~0x01;
 
     //P2SEL2 = 0;
-    
+
     while ( 1)
     {
         // Get the Pinger Distances
@@ -142,12 +148,18 @@ void main(void)
 
         // Calc new location and send to base
         TACTL   |= TAIE;
-        __enable_interrupt(); 
-        __low_power_mode_1();    
+        __enable_interrupt();
+        __low_power_mode_1();
 
-         volatile uint16_t i = 1000;
+        uint32_t digets = uint32ToChar(rightPinger.echoTime, temp);
+        temp[digets] = '\n';
+        temp[digets + 1] = 0;
+
+        uart_puts(temp);
+        volatile uint16_t i = 1000;
 
         while (i--);
+
         // i = 10000;
 
         // while (i--);
