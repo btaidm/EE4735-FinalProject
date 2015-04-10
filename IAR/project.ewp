@@ -1739,6 +1739,9 @@
   <file>
     <name>$PROJ_DIR$\..\src\pinger\pinger.c</name>
   </file>
+  <file>
+    <name>$PROJ_DIR$\..\src\uart\uart.c</name>
+  </file>
 </project>
 
 

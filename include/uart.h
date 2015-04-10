@@ -17,10 +17,6 @@ int uart_putchar(char c);
 
 int uart_puts(const char* str);
 
-uint16_t uint16ToChar(uint16_t num, char* temp);
-uint32_t uint32ToChar(uint32_t num, char* temp);
-uint8_t uint8ToChar(uint8_t num, char* temp);
-
-
+int uart_putsUint32(uint32_t num);
 
 #endif
