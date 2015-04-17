@@ -5,7 +5,7 @@
 #include "uart.h"
 #include <string.h>
 
-char temp[35] = {0};
+static char temp[10] = {0};
 
 #define MAX_TICKS 10000        // Blink length (loop passes)
 
@@ -18,6 +18,8 @@ volatile pinger_t rightPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pi
                                   .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 3}, \
                                   .echoTime = 0
                                 };
+
+uart_config_t config = { .baud = 9600 };
 
 __INTERRUPT(TIMERA0_VECTOR) void timara0_isr(void)
 {
@@ -134,6 +136,7 @@ void main(void)
     setup_timer();
     setup_pinger(leftPinger);
     setup_pinger(rightPinger);
+    uart_init(&config);
     P1DIR |= 0x01;                            // Set pin P1.0 to output
     P1OUT &= ~0x01;
 
@@ -150,12 +153,9 @@ void main(void)
         TACTL   |= TAIE;
         __enable_interrupt();
         __low_power_mode_1();
-
-        uint32_t digets = uint32ToChar(rightPinger.echoTime, temp);
-        temp[digets] = '\n';
-        temp[digets + 1] = 0;
-
-        uart_puts(temp);
+        __disable_interrupt();
+       
+        uart_putsUint32(rightPinger.echoTime);
         volatile uint16_t i = 1000;
 
         while (i--);

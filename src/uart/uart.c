@@ -113,76 +113,29 @@ int uart_puts(const char* str)
     return status;
 }
 
-
-uint16_t uint16ToChar(uint16_t num, char* temp)
+int uart_putsUint32(uint32_t num)
 {
-    uint16_t a = num;
-    int i = 0;
+    while (!(IFG2 & UCA0TXIFG));
+    UCA0TXBUF = TO_HEX((num & 0xF0000000)>>28);
+    while (!(IFG2 & UCA0TXIFG));
+    UCA0TXBUF = TO_HEX((num & 0x0F000000)>>24);
+    while (!(IFG2 & UCA0TXIFG));
+    UCA0TXBUF = TO_HEX((num & 0x00F00000)>>20);
+    while (!(IFG2 & UCA0TXIFG));
+    UCA0TXBUF = TO_HEX((num & 0x000F0000)>>16);
+    while (!(IFG2 & UCA0TXIFG));
+    UCA0TXBUF = TO_HEX((num & 0x0000F000)>>12);
+    while (!(IFG2 & UCA0TXIFG));
+    UCA0TXBUF = TO_HEX((num & 0x00000F00)>>8);
+    while (!(IFG2 & UCA0TXIFG));
+    UCA0TXBUF = TO_HEX((num & 0x000000F0)>>4);
+    while (!(IFG2 & UCA0TXIFG));
+    UCA0TXBUF = TO_HEX((num & 0x0000000F)>>0);
+    while (!(IFG2 & UCA0TXIFG));    
+    UCA0TXBUF = '\n';
+    while (!(IFG2 & UCA0TXIFG));
+    UCA0TXBUF = '\r';
 
-    while (a)
-    {
-        a = a / 10;
-        i++;
-    }
-
-    a = i;
-    temp[i] = 0;
-
-    while (i > 0)
-    {
-        temp[i - 1] = (a % 10) + 48;
-        a = a / 10;
-        i--;
-    }
-
-    return a;
-
+    return 0;
 }
 
-uint32_t uint32ToChar(uint32_t num, char* temp)
-{
-    uint32_t a = num;
-    int i = 0;
-
-    while (a)
-    {
-        a = a / 10;
-        i++;
-    }
-
-    a = i;
-    temp[i] = 0;
-
-    while (i > 0)
-    {
-        temp[i - 1] = (a % 10) + 48;
-        a = a / 10;
-        i--;
-    }
-
-    return a;
-}
-
-uint8_t uint8ToChar(uint8_t num, char* temp)
-{
-    uint8_t a = num;
-    int i = 0;
-
-    while (a)
-    {
-        a = a / 10;
-        i++;
-    }
-
-    a = i;
-    temp[i] = 0;
-
-    while (i > 0)
-    {
-        temp[i - 1] = (a % 10) + 48;
-        a = a / 10;
-        i--;
-    }
-
-    return a;
-}
