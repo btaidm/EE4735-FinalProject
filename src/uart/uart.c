@@ -123,30 +123,64 @@ int uart_puts(const char* str)
     return status;
 }
 
+
+
 int uart_putsUint32(uint32_t num)
 {
-    while (!(IFG2 & UCA0TXIFG)) {};
-    volatile uint8_t c = (uint8_t)TO_HEX((num & 0xF0000000)>>28);
-    UCA0TXBUF = c;
-    while (!(IFG2 & UCA0TXIFG)) {};
-    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x0F000000)>>24);
-    while (!(IFG2 & UCA0TXIFG)) {};
-    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x00F00000)>>20);
-    while (!(IFG2 & UCA0TXIFG)) {};
-    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x000F0000)>>16);
-    while (!(IFG2 & UCA0TXIFG)) {};
-    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x0000F000)>>12);
-    while (!(IFG2 & UCA0TXIFG)) {};
-    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x00000F00)>>8);
-    while (!(IFG2 & UCA0TXIFG)) {};
-    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x000000F0)>>4);
-    while (!(IFG2 & UCA0TXIFG)) {};
-    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x0000000F)>>0);
-    while (!(IFG2 & UCA0TXIFG)) {};    
-    UCA0TXBUF = '\r';
-    while (!(IFG2 & UCA0TXIFG)) {};
-    UCA0TXBUF = '\n';
+#if 0
 
+    while (!(IFG2 & UCA0TXIFG)) {};
+
+    volatile uint8_t c = (uint8_t)TO_HEX((num & 0xF0000000) >> 28);
+
+    UCA0TXBUF = c;
+
+    while (!(IFG2 & UCA0TXIFG)) {};
+
+    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x0F000000) >> 24);
+
+    while (!(IFG2 & UCA0TXIFG)) {};
+
+    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x00F00000) >> 20);
+
+    while (!(IFG2 & UCA0TXIFG)) {};
+
+    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x000F0000) >> 16);
+
+    while (!(IFG2 & UCA0TXIFG)) {};
+
+    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x0000F000) >> 12);
+
+    while (!(IFG2 & UCA0TXIFG)) {};
+
+    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x00000F00) >> 8);
+
+    while (!(IFG2 & UCA0TXIFG)) {};
+
+    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x000000F0) >> 4);
+
+    while (!(IFG2 & UCA0TXIFG)) {};
+
+    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x0000000F) >> 0);
+
+#else
+    while (!(IFG2 & UCA0TXIFG)) {};
+
+    UCA0TXBUF = (uint8_t)((num & 0xFF000000) >> 24);
+
+    while (!(IFG2 & UCA0TXIFG)) {};
+
+    UCA0TXBUF = (uint8_t)((num & 0x00FF0000) >> 16);
+
+    while (!(IFG2 & UCA0TXIFG)) {};
+
+    UCA0TXBUF = (uint8_t)((num & 0x0000FF00) >> 8);
+
+    while (!(IFG2 & UCA0TXIFG)) {};
+
+    UCA0TXBUF = (uint8_t)((num & 0x000000FF) >> 0);
+
+#endif
     return 0;
 }
 

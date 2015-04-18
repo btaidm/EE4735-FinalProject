@@ -9,17 +9,17 @@
 
 #define MAX_TICKS 10000        // Blink length (loop passes)
 
- pinger_t leftPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 0}, \
-                                 .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 2}, \
-                                 .echoTime = 0, \
-                                 .ledpin = 1
-                               };
+pinger_t leftPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 0}, \
+                        .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 2}, \
+                        .echoTime = 0, \
+                        .ledpin = 1
+                      };
 
- pinger_t rightPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 1}, \
-                                  .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 3}, \
-                                  .echoTime = 0, \
-                                  .ledpin = 0
-                                };
+pinger_t rightPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 1}, \
+                         .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 3}, \
+                         .echoTime = 0, \
+                         .ledpin = 0
+                       };
 
 uart_config_t config = { .baud = 9600 };
 
@@ -54,7 +54,7 @@ __INTERRUPT(TIMERA0_VECTOR) void timara0_isr(void)
 
             totalTime += (currStamp - reTime_1);
             leftPinger.echoTime = totalTime;
-            
+
             start_pinger(&rightPinger);
             break;
         }
@@ -144,13 +144,13 @@ void main(void)
     setup_timer();
     setup_pinger(&leftPinger);
     setup_pinger(&rightPinger);
-    
+
     setup_clock();
-    
+
     uart_init(&config);
 
-    
-    
+    uart_puts("STARTCOL");
+
     P1DIR |= 0x03;                            // Set pin P1.0 to output
     P1OUT &= ~0x03;
 
@@ -168,9 +168,13 @@ void main(void)
         __enable_interrupt();
         __low_power_mode_1();
         __disable_interrupt();
-       
+
         //uart_puts("Hello World\n");
+        //uart_puts("\nLeft Pinger:\t");
         uart_putsUint32(leftPinger.echoTime);
+
+        //uart_puts("\tRight Pinger:\t");
+        uart_putsUint32(rightPinger.echoTime);
         //volatile uint16_t i = 100;
 
         //while (i--);
