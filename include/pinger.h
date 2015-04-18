@@ -20,12 +20,13 @@ typedef struct
         PORT_TYPE* in;
         uint8_t pin;
     } echo;
-    uint32_t echoTime;
+    volatile uint32_t echoTime;
+    uint8_t ledpin;
 
 } pinger_t;
 
-void setup_pinger(pinger_t pinger);
+void setup_pinger(pinger_t* pinger);
 
-void start_pinger(pinger_t pinger);
+void start_pinger(pinger_t* pinger);
 
 #endif

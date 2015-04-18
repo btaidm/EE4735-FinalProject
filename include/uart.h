@@ -18,5 +18,4 @@ int uart_putchar(char c);
 int uart_puts(const char* str);
 
 int uart_putsUint32(uint32_t num);
-
 #endif

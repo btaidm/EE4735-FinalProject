@@ -1,8 +1,8 @@
 [DebugChecksum]
-Checksum=1758162235
+Checksum=-1979942096
 [DisAssemblyWindow]
 NumStates=_ 1
-State 1=_ 1
+State 1=_ 0
 [InstructionProfiling]
 Enabled=_ 0
 [CodeCoverage]
@@ -36,13 +36,13 @@ ActionState=1
 Enabled=0
 ShowSource=1
 [State Storage]
-Control Register=34308
+Control Register=33420
 [Sequencer]
-Control Register=34308
-NextState0=34308
-NextState1=34308
+Control Register=33420
+NextState0=33420
+NextState1=33420
 [Action Register]
-Break=1
+Break=3
 State Storage=1
 [Stack]
 FillEnabled=0
@@ -61,8 +61,19 @@ Number=4
 [Aliases]
 Count=0
 SuppressDialog=0
+[RegisterFilter]
+FilePath=_ ""
+UseFilter=_ 0
+[Log file]
+LoggingEnabled=_ 0
+LogFile=_ ""
+Category=_ 0
+[TermIOLog]
+LoggingEnabled=_ 0
+LogFile=_ ""
 [Breakpoints]
-Count=0
+Bp0=_ "STD_CODE" "{\\mtucifs2.iso.mtu.edu\home\Desktop\EE4753\EE4735-FinalProject\src\uart\uart.c}.145.5@1" 1 0 0 0 "" 0 ""
+Count=1
 [FET]
 Clock mode=38
 Extended Clock mode=65535
@@ -82,10 +93,3 @@ SP=0
 SR=0
 all registers=0
 File name=
-[Log file]
-LoggingEnabled=_ 0
-LogFile=_ ""
-Category=_ 0
-[TermIOLog]
-LoggingEnabled=_ 0
-LogFile=_ ""

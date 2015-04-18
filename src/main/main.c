@@ -5,18 +5,20 @@
 #include "uart.h"
 #include <string.h>
 
-static char temp[10] = {0};
+//static char temp[10] = {0};
 
 #define MAX_TICKS 10000        // Blink length (loop passes)
 
-volatile pinger_t leftPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 0}, \
+ pinger_t leftPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 0}, \
                                  .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 2}, \
-                                 .echoTime = 0
+                                 .echoTime = 0, \
+                                 .ledpin = 1
                                };
 
-volatile pinger_t rightPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 1}, \
+ pinger_t rightPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 1}, \
                                   .echo = { .in = &P2OUT, .dir = &P2DIR, .sel = &P2SEL, .pin = 3}, \
-                                  .echoTime = 0
+                                  .echoTime = 0, \
+                                  .ledpin = 0
                                 };
 
 uart_config_t config = { .baud = 9600 };
@@ -51,9 +53,9 @@ __INTERRUPT(TIMERA0_VECTOR) void timara0_isr(void)
             }
 
             totalTime += (currStamp - reTime_1);
-            rightPinger.echoTime = totalTime;
-            __low_power_mode_off_on_exit();
-            //start_pinger(leftPinger);
+            leftPinger.echoTime = totalTime;
+            
+            start_pinger(&rightPinger);
             break;
         }
     }
@@ -68,7 +70,7 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
             static uint8_t edge_2 = 0;
             static uint16_t reTime_2 = 0;
 
-            uint16_t currStamp = TACCR2;
+            uint16_t currStamp = TACCR1;
 
             TACCTL1 &= ~CCIFG;
             TACCTL1 ^= CM1 | CM0;
@@ -96,8 +98,8 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
                     }
 
                     totalTime += (currStamp - reTime_2);
-                    leftPinger.echoTime = totalTime;
-                    start_pinger(rightPinger);
+                    rightPinger.echoTime = totalTime;
+                    __low_power_mode_off_on_exit();
                     break;
                 }
             }
@@ -111,7 +113,7 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
         case TAIV_TAIFG:
         {
             TACTL &= ~(TAIE | TAIFG);
-            start_pinger(rightPinger);
+            start_pinger(&leftPinger);
             break;
         }
 
@@ -120,7 +122,7 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
     }
 }
 
-void setup_timer()
+void setup_timer(void)
 {
     TACTL   = TASSEL_2 | ID_0 | MC_2;
     TACCTL0 = CM_1 | CCIS_1 | SCS | CAP | CCIE;
@@ -128,17 +130,29 @@ void setup_timer()
     //TACCTL2 = CM0 | CCIS_1 | CAP | SCS | CCIE;
 }
 
+void setup_clock(void)
+{
+    BCSCTL1 = CALBC1_1MHZ;                // DCO = 1 MHz
+    //BCSCTL2 |= DIVS_3;
+    DCOCTL  = CALDCO_1MHZ;                // DCO = 1 MHz
+}
 
 void main(void)
 {
     WDTCTL = WDTPW | WDTHOLD;                 // Stop watchdog timer
     P2SEL = 0;
     setup_timer();
-    setup_pinger(leftPinger);
-    setup_pinger(rightPinger);
+    setup_pinger(&leftPinger);
+    setup_pinger(&rightPinger);
+    
+    setup_clock();
+    
     uart_init(&config);
-    P1DIR |= 0x01;                            // Set pin P1.0 to output
-    P1OUT &= ~0x01;
+
+    
+    
+    P1DIR |= 0x03;                            // Set pin P1.0 to output
+    P1OUT &= ~0x03;
 
     //P2SEL2 = 0;
 
@@ -155,10 +169,11 @@ void main(void)
         __low_power_mode_1();
         __disable_interrupt();
        
-        uart_putsUint32(rightPinger.echoTime);
-        volatile uint16_t i = 1000;
+        //uart_puts("Hello World\n");
+        uart_putsUint32(leftPinger.echoTime);
+        //volatile uint16_t i = 100;
 
-        while (i--);
+        //while (i--);
 
         // i = 10000;
 

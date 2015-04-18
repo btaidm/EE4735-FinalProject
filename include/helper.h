@@ -19,7 +19,12 @@
 
 #define ARRAY_SIZE(array) (sizeof(array)/sizeof(array[0]))
 
-#define TO_HEX(i) (i <= 9? '0' + i : 'A' - 10 + i)
+#if 1
+#define TO_HEX(i) ((i) <= 9? '0' + (i) : 'A' - 10 + (i))
+#else
+#define TO_HEX(i) (i)
+#endif
+
 
 inline uint16_t uint16ToChar(uint16_t num, char* temp)
 {

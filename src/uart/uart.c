@@ -15,16 +15,17 @@ struct baud_value
 
 const struct baud_value baud_tbl[] =
 {
-    {9600, 104, 0, 0x2}
+    {9600, 104, 0, UCBRS0}
 };
 
 
 int uart_init(uart_config_t* config)
 {
+#if 0
     P3SEL = 0x30;                         // P3.4,5 = USCI_A0 TXD/RXD
     int status = -1;
 
-    /* USCI should be in reset before configuring - only configure once */
+    /*USCI should be in reset before configuring - only configure once */
     if (UCA0CTL1 & UCSWRST)
     {
         size_t i;
@@ -55,6 +56,15 @@ int uart_init(uart_config_t* config)
     }
 
     return status;
+#else
+    P3SEL = 0x30;
+    UCA0CTL1 |= UCSSEL_2;
+    UCA0BR0 = 104;
+    UCA0BR1 = 0;
+    UCA0MCTL = UCBRS0;
+    UCA0CTL1 &= ~UCSWRST;
+    return 0;
+#endif
 }
 
 
@@ -115,26 +125,27 @@ int uart_puts(const char* str)
 
 int uart_putsUint32(uint32_t num)
 {
-    while (!(IFG2 & UCA0TXIFG));
-    UCA0TXBUF = TO_HEX((num & 0xF0000000)>>28);
-    while (!(IFG2 & UCA0TXIFG));
-    UCA0TXBUF = TO_HEX((num & 0x0F000000)>>24);
-    while (!(IFG2 & UCA0TXIFG));
-    UCA0TXBUF = TO_HEX((num & 0x00F00000)>>20);
-    while (!(IFG2 & UCA0TXIFG));
-    UCA0TXBUF = TO_HEX((num & 0x000F0000)>>16);
-    while (!(IFG2 & UCA0TXIFG));
-    UCA0TXBUF = TO_HEX((num & 0x0000F000)>>12);
-    while (!(IFG2 & UCA0TXIFG));
-    UCA0TXBUF = TO_HEX((num & 0x00000F00)>>8);
-    while (!(IFG2 & UCA0TXIFG));
-    UCA0TXBUF = TO_HEX((num & 0x000000F0)>>4);
-    while (!(IFG2 & UCA0TXIFG));
-    UCA0TXBUF = TO_HEX((num & 0x0000000F)>>0);
-    while (!(IFG2 & UCA0TXIFG));    
-    UCA0TXBUF = '\n';
-    while (!(IFG2 & UCA0TXIFG));
+    while (!(IFG2 & UCA0TXIFG)) {};
+    volatile uint8_t c = (uint8_t)TO_HEX((num & 0xF0000000)>>28);
+    UCA0TXBUF = c;
+    while (!(IFG2 & UCA0TXIFG)) {};
+    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x0F000000)>>24);
+    while (!(IFG2 & UCA0TXIFG)) {};
+    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x00F00000)>>20);
+    while (!(IFG2 & UCA0TXIFG)) {};
+    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x000F0000)>>16);
+    while (!(IFG2 & UCA0TXIFG)) {};
+    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x0000F000)>>12);
+    while (!(IFG2 & UCA0TXIFG)) {};
+    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x00000F00)>>8);
+    while (!(IFG2 & UCA0TXIFG)) {};
+    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x000000F0)>>4);
+    while (!(IFG2 & UCA0TXIFG)) {};
+    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x0000000F)>>0);
+    while (!(IFG2 & UCA0TXIFG)) {};    
     UCA0TXBUF = '\r';
+    while (!(IFG2 & UCA0TXIFG)) {};
+    UCA0TXBUF = '\n';
 
     return 0;
 }
