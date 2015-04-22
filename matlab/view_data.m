@@ -1,7 +1,7 @@
 clc;
 clear;
 
-file = '220cm-wide-open.mat'
+file = '180cm-wide.mat'
 
 clockspeed = 1.1 * 10^6; % Hz
 soundSpeed = 343.59; % m/s
