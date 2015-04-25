@@ -29,23 +29,30 @@ void motor_stop(void)
 
 void motor_set(int8_t speed,  enum MOTOR motor)
 {
+#if FLIPPED_BASE
+    speed = -speed;
+#endif
+
     switch (motor)
     {
         case MOTOR_1:
         {
 
+            uint8_t motor_speed = MAP_SPEED_MOTOR1(speed);
 
             while (!(IFG2 & UCA0TXIFG));
 
-            UCA0TXBUF = MAP_SPEED_MOTOR1(speed); //full ahead
+            UCA0TXBUF = motor_speed;
             break;
         }
 
         case MOTOR_2:
         {
+            uint8_t motor_speed = MAP_SPEED_MOTOR2(speed);
+
             while (!(IFG2 & UCA0TXIFG));
 
-            UCA0TXBUF = MAP_SPEED_MOTOR2(speed); //full ahead;
+            UCA0TXBUF = motor_speed;
             break;
         }
     }

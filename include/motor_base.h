@@ -3,10 +3,12 @@
 
 #include <stdint.h>
 
+#define FLIPPED_BASE 1
+
 enum DIRECTION
 {
-    FORWARD = -1,
-    REVERSE = 1
+    FORWARD = 1,
+    REVERSE = -1
 };
 
 enum MOTOR

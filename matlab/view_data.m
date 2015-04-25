@@ -1,19 +1,22 @@
 clc;
 clear;
 
-file = '180cm-wide.mat'
+file = 'calibrate-echos.mat';
 
-clockspeed = 1.1 * 10^6; % Hz
-soundSpeed = 343.59; % m/s
+clockspeed = 1.1 * 10 ^ 6; % Hz      
+soundSpeed = 343.59; % m / s
 
-fprintf('Loading %s\n',file)
+fprintf('Loading %s\n', file)
 
 load(file);
 
 % swap bytes for endinness
 
 left = double(swapbytes(uint32(left)));
+
 right = double(swapbytes(uint32(right)));
+
+distance = double(swapbytes(uint32(distance)));
 
 % Raw
 figure(1)
@@ -21,9 +24,10 @@ clf;
 hold on
 plot(right, '-')
 plot(left, '-')
+plot(distance,'-')
 hold off
-legend('Right Pinger', 'Left Pinger')
-title(['Raw Pinger Data for ',file])
+legend('Right Pinger', 'Left Pinger', 'Distance')
+title(['Raw Pinger Data for ', file])
 xlabel('Pinger Iteration')
 ylabel('Cycles')
 
@@ -33,11 +37,13 @@ clf;
 hold on
 rightT = right / clockspeed;
 leftT = left / clockspeed;
+distanceT = distance / clockspeed;
 plot(rightT * 1000, '-')
 plot(leftT * 1000, '-')
+plot(distanceT * 1000, '-')
 hold off
-legend('Right Pinger', 'Left Pinger')
-title(['Timed Pinger Data for ',file])
+legend('Right Pinger', 'Left Pinger', 'distance')
+title(['Timed Pinger Data for ', file])
 xlabel('Pinger Iteration')
 ylabel('Time (ms)')
 
@@ -48,27 +54,31 @@ clf;
 hold on
 rightD = rightT * 1000000 / 58;
 leftD = leftT * 1000000 / 58;
+distanceD = distanceT * 1000000 / 58;
 plot(rightD, '-')
 plot(leftD, '-')
+plot(distanceD, '-')
 hold off
-legend('Right Pinger', 'Left Pinger')
-title(['Distance Pinger Data for ',file])
+legend('Right Pinger', 'Left Pinger', 'Distance')
+title(['Distance Pinger Data for ', file])
 xlabel('Pinger Iteration')
 ylabel('Distance (cm)')
-%axis([1 1000 0 3])
+% axis([1 1000 0 3])
 
 % Cycles to Distance
 figure(4)
 clf;
 hold on
-rightCD = uint32(uint32(right)/uint32(64));
-leftCD = uint32(uint32(left)/uint32(64));
+rightCD = uint32(uint32(right) / uint32(64));
+leftCD = uint32(uint32(left) / uint32(64));
+distanceCD = uint32(uint32(distance) / uint32(64));
 plot(rightCD, '-')
 plot(leftCD, '-')
+plot(distanceCD, '-')
 hold off
-legend('Right Pinger', 'Left Pinger')
-title(['Cycle to Distance Pinger Data for ',file])
+legend('Right Pinger', 'Left Pinger', 'Distance')
+title(['Cycle to Distance Pinger Data for ', file])
 xlabel('Pinger Iteration')
 ylabel('Distance (cm)')
-%axis([1 1000 0 3])
+% axis([1 1000 0 3])
 

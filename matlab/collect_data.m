@@ -1,7 +1,7 @@
 clc
 clear
 
-file = '300cm-narrow-open.mat';
+file = 'calibrate-echos-2.mat';
 % finishup = onCleanup(@() clean);
 
 fprintf('Waiting for Start string of %s\n',file)
@@ -28,10 +28,12 @@ fprintf('Starting Collection\n')
 tic
 left = 1:1000;
 right = 1:1000;
+distance = 1:1000;
 for i = 1:length(left)
-    distanceValues = fread(bot, 2, 'uint32');
+    distanceValues = fread(bot, 3, 'uint32');
     left(i) = distanceValues(1);
     right(i) = distanceValues(2);
+    distance(i) = distanceValues(3);
 end
 toc
 fprintf('Done Collecting Data\n')
@@ -40,4 +42,4 @@ fclose(bot)
 delete(bot)
 clear bot
 
-save(file,'left', 'right');
+save(file,'left', 'right', 'distance');

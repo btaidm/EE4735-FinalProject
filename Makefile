@@ -33,7 +33,7 @@ CF_ALL 		= -g -O2  -mmcu=$(DEVICE) --std=c99
 LF_ALL 		= -L$(LDIR) -L$(DEVICE_LDIR) -T $(DEVICE).ld -g -mmcu=$(DEVICE) --std=c99
 
 BUILD_PRE	:= build
-MODULES 	= pinger main motor_base
+MODULES 	= pinger main motor_base uart
 SRC_DIR 	:= $(addprefix src/,$(MODULES))
 BUILD_DIR 	:= $(addprefix $(BUILD_PRE)/,$(MODULES))
 

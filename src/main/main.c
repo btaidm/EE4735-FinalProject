@@ -7,15 +7,30 @@
 
 //static char temp[10] = {0};
 
-#define TOTAL_CALBRATION_STEPS 5
+#define TOTAL_CALBRATION_STEPS 10
+#define DRIVE_METHOD 3
+#define MATLAB_STUFF 1
+#define CYCLES_TO_CM 64
 
-static const uint32_t FOLLOWING_DISTANCE = 64 * 30; //cycles
-static const uint8_t DISTANCE_TOL = 64;
+#if MATLAB_STUFF == 1
+#include "uart.h"
+uart_config_t config = { .baud = 9600 };
+#endif
+
+static const uint32_t FOLLOWING_DISTANCE = 2 * CYCLES_TO_CM * 30; //cycles
+static const uint32_t CALIBRATING_DISTANCE = CYCLES_TO_CM * 30; //cycles
+static const uint32_t DISTANCE_TOL = CYCLES_TO_CM * 10;
+static const uint32_t PINGER_OFFSET_TOL = CYCLES_TO_CM * 20;
+static const uint8_t SPEED_SLOPE = 2;
+static const uint8_t SPEED_START_OFFSET = 9;
+static const uint8_t SPEED_LIMIT = 90;
+static const uint8_t TURN_SPEED = 45;
+
 static uint8_t calibrationCount = TOTAL_CALBRATION_STEPS;
 static int32_t leftOffset = 0;
 static int32_t rightOffset = 0;
 static uint8_t drive_state = 0;
-//static int8_t
+
 
 
 #define MAX_TICKS 10000        // Blink length (loop passes)
@@ -32,9 +47,9 @@ pinger_t rightPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 1}, \
                          .ledpin = 0
                        };
 
-volatile pinger_t* use_pinger = &leftPinger;
+pinger_t* use_pinger = &leftPinger;
 
-//uart_config_t config = { .baud = 9600 };
+
 
 __INTERRUPT(TIMERA0_VECTOR) void timara0_isr(void)
 {
@@ -70,8 +85,8 @@ __INTERRUPT(TIMERA0_VECTOR) void timara0_isr(void)
 
             use_pinger = &rightPinger;
 
-            TB0CTL |= (TBCLR);
-            TB0CTL |= TBIE | ID_1 | MC_1;
+            // TB0CTL |= (TBCLR);
+            //TB0CTL |= TBIE;
             TB0CCTL0 |= CCIE;
 
             //start_pinger(&rightPinger);
@@ -133,6 +148,8 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
 
         case TAIV_TAIFG:
         {
+            TACTL &= ~(TAIE | TAIFG);
+            start_pinger(&leftPinger);
             break;
         }
 
@@ -145,7 +162,7 @@ __INTERRUPT(TIMERB0_VECTOR) void timerb0_isr(void)
 {
     //static volatile uint8_t pinger = 1;
     //TBCTL &= ~(TBIE | TBIFG);
-    TB0CTL &= ~TBIE;
+    //TB0CTL &= ~TBIE;
     TB0CCTL0 &= ~CCIE;
     start_pinger(use_pinger);
 }
@@ -156,8 +173,8 @@ inline void setup_timer(void)
     TACCTL0 = CM_1 | CCIS_1 | SCS | CAP | CCIE;
     TACCTL1 = CM_1 | CCIS_1 | CAP | SCS | CCIE;
     TB0CTL =  TBSSEL_2 | ID_1 | MC_1;
-    //TBCCTL0 = CCIE;
-    TB0CCR0 =  0xFFF0;
+    // //TBCCTL0 = CCIE;
+    TB0CCR0 =  35750;
 
 
     //TACCTL2 = CM0 | CCIS_1 | CAP | SCS | CCIE;
@@ -172,8 +189,8 @@ inline void setup_clock(void)
 
 static inline void calibrate(void)
 {
-    int32_t newLeftOffset = FOLLOWING_DISTANCE - leftPinger.echoTime;
-    int32_t newRightOffset = FOLLOWING_DISTANCE - rightPinger.echoTime;
+    int32_t newLeftOffset = (int32_t)CALIBRATING_DISTANCE - (int32_t)leftPinger.echoTime;
+    int32_t newRightOffset = (int32_t)CALIBRATING_DISTANCE - (int32_t)rightPinger.echoTime;
     leftOffset += newLeftOffset;
     rightOffset += newRightOffset;
 
@@ -188,28 +205,105 @@ static inline void drive(void)
 {
     uint32_t newLeftEcho = leftPinger.echoTime + leftOffset;
     uint32_t newRightEcho = rightPinger.echoTime + rightOffset;
-
-#if 0
-    uart_putsUint32(newLeftEcho);
-    uart_putsUint32(newRightEcho);
-#else
     uint32_t currentDistance = (newLeftEcho + newRightEcho) / 2;
 
-    if (currentDistance > (FOLLOWING_DISTANCE + DISTANCE_TOL))
-    {
-        motor_full_speed(FORWARD);
-        drive_state = 1;
-    }
-    else if (currentDistance < (FOLLOWING_DISTANCE - DISTANCE_TOL))
-    {
-        motor_full_speed(REVERSE);
-        drive_state = 2;
-    }
-    else if ((FOLLOWING_DISTANCE - DISTANCE_TOL) <= currentDistance && currentDistance <= (FOLLOWING_DISTANCE + DISTANCE_TOL) && drive_state != 0)
+#if MATLAB_STUFF == 1
+    uart_putsUint32(newLeftEcho);
+    uart_putsUint32(newRightEcho);
+    uart_putsUint32(currentDistance);
+
+#elif DRIVE_METHOD == 1
+
+    if ((FOLLOWING_DISTANCE - DISTANCE_TOL) <= currentDistance && currentDistance <= (FOLLOWING_DISTANCE + DISTANCE_TOL) && drive_state != 0)
     {
         motor_stop();
         drive_state = 0;
     }
+    else if (currentDistance < (FOLLOWING_DISTANCE - DISTANCE_TOL))
+    {
+        motor_half_speed(REVERSE);
+        drive_state = 2;
+    }
+    else if (currentDistance > (FOLLOWING_DISTANCE + DISTANCE_TOL))
+    {
+        motor_half_speed(FORWARD);
+        drive_state = 1;
+    }
+
+#elif DRIVE_METHOD == 2
+
+    int32_t distanceToTarget = currentDistance - FOLLOWING_DISTANCE;
+
+    if (-DISTANCE_TOL <= distanceToTarget && distanceToTarget <= DISTANCE_TOL)
+    {
+        motor_stop();
+    }
+    else
+    {
+        int8_t speed = distanceToTarget / (SPEED_SLOPE * CYCLES_TO_CM);
+
+        if (distanceToTarget < 0)
+            speed += -SPEED_START_OFFSET;
+        else
+            speed += SPEED_START_OFFSET;
+
+        if (speed >= SPEED_LIMIT) speed = SPEED_LIMIT;
+
+        if (speed <= -SPEED_LIMIT) speed = -SPEED_LIMIT;
+
+        motor_set_both(speed);
+    }
+
+#elif DRIVE_METHOD == 3
+    int32_t distanceToTarget = currentDistance - FOLLOWING_DISTANCE;
+    int32_t leftRightOffset = newLeftEcho - newRightEcho;
+
+    // if (-DISTANCE_TOL <= distanceToTarget && distanceToTarget <= DISTANCE_TOL)
+    // {
+    if (-PINGER_OFFSET_TOL <= leftRightOffset && leftRightOffset <= PINGER_OFFSET_TOL)
+    {
+        motor_stop();
+    }
+    else
+    {
+        if (leftRightOffset < 0)
+            motor_spin(-TURN_SPEED);
+        else
+            motor_spin(TURN_SPEED);
+    }
+
+    // }
+    // else
+    // {
+    //     int8_t speed = distanceToTarget / (SPEED_SLOPE * CYCLES_TO_CM);
+
+    //     if (distanceToTarget < 0)
+    //         speed += -SPEED_START_OFFSET;
+    //     else
+    //         speed += SPEED_START_OFFSET;
+
+
+    //     int8_t speed1 = speed;
+    //     int8_t speed2 = speed;
+
+    //     if (-PINGER_OFFSET_TOL <= leftRightOffset && leftRightOffset <= PINGER_OFFSET_TOL)
+    //     {
+    //         speed1 += (leftRightOffset < 0) ? -TURN_SPEED : TURN_SPEED;
+    //         speed2 -= (leftRightOffset < 0) ? -TURN_SPEED : TURN_SPEED;
+    //     }
+
+    //     if (speed1 >= SPEED_LIMIT) speed1 = SPEED_LIMIT;
+
+    //     if (speed1 <= -SPEED_LIMIT) speed1 = -SPEED_LIMIT;
+
+    //     if (speed2 >= SPEED_LIMIT) speed2 = SPEED_LIMIT;
+
+    //     if (speed2 <= -SPEED_LIMIT) speed2 = -SPEED_LIMIT;
+
+    //     motor_set(speed1, MOTOR_1);
+    //     motor_set(speed2, MOTOR_2);
+    //     //motor_set_both(speed);
+    // }
 
 #endif
 
@@ -225,11 +319,15 @@ void main(void)
 
     setup_clock();
 
-    //uart_init(&config);
+#if MATLAB_STUFF == 1
+    uart_init(&config);
+#else
     motor_init();
+#endif
 
-    //uart_puts("STARTCOL");
-
+#if MATLAB_STUFF == 1
+    uart_puts("STARTCOL");
+#endif
     P1DIR |= 0x03;                            // Set pin P1.0 to output
     P1OUT &= ~0x03;
     P1OUT |= 0x01;
@@ -245,10 +343,10 @@ void main(void)
         // start_pinger(rightPinger);
         //Go to low Power Mode
         use_pinger = &leftPinger;
-        TB0CTL |= (TBCLR);
-        TB0CTL |= TBIE | ID_1 | MC_1;
+        //TB0CTL |= (TBCLR);
+        //TB0CTL |= TBIE;
         TB0CCTL0 |= CCIE;
-
+        //TACTL   |= TAIE;
         __enable_interrupt();
         __low_power_mode_1();
         __disable_interrupt();
