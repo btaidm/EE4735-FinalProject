@@ -4,10 +4,10 @@
 #include <stdint.h>
 
 enum DIRECTION
- {
-    FORWARD = 1,
-    REVERSE = -1  
- };
+{
+    FORWARD = -1,
+    REVERSE = 1
+};
 
 enum MOTOR
 {

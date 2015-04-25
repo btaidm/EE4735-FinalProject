@@ -2,10 +2,21 @@
 #include <stdint.h>
 #include "pinger.h"
 #include "helper.h"
-#include "uart.h"
+#include "motor_base.h"
 #include <string.h>
 
 //static char temp[10] = {0};
+
+#define TOTAL_CALBRATION_STEPS 5
+
+static const uint32_t FOLLOWING_DISTANCE = 64 * 30; //cycles
+static const uint8_t DISTANCE_TOL = 64;
+static uint8_t calibrationCount = TOTAL_CALBRATION_STEPS;
+static int32_t leftOffset = 0;
+static int32_t rightOffset = 0;
+static uint8_t drive_state = 0;
+//static int8_t
+
 
 #define MAX_TICKS 10000        // Blink length (loop passes)
 
@@ -21,7 +32,9 @@ pinger_t rightPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 1}, \
                          .ledpin = 0
                        };
 
-uart_config_t config = { .baud = 9600 };
+volatile pinger_t* use_pinger = &leftPinger;
+
+//uart_config_t config = { .baud = 9600 };
 
 __INTERRUPT(TIMERA0_VECTOR) void timara0_isr(void)
 {
@@ -55,7 +68,13 @@ __INTERRUPT(TIMERA0_VECTOR) void timara0_isr(void)
             totalTime += (currStamp - reTime_1);
             leftPinger.echoTime = totalTime;
 
-            start_pinger(&rightPinger);
+            use_pinger = &rightPinger;
+
+            TB0CTL |= (TBCLR);
+            TB0CTL |= TBIE | ID_1 | MC_1;
+            TB0CCTL0 |= CCIE;
+
+            //start_pinger(&rightPinger);
             break;
         }
     }
@@ -108,12 +127,12 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
         }
 
         case TAIV_TACCR2:
+        {
             break;
+        }
 
         case TAIV_TAIFG:
         {
-            TACTL &= ~(TAIE | TAIFG);
-            start_pinger(&leftPinger);
             break;
         }
 
@@ -122,19 +141,78 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
     }
 }
 
-void setup_timer(void)
+__INTERRUPT(TIMERB0_VECTOR) void timerb0_isr(void)
+{
+    //static volatile uint8_t pinger = 1;
+    //TBCTL &= ~(TBIE | TBIFG);
+    TB0CTL &= ~TBIE;
+    TB0CCTL0 &= ~CCIE;
+    start_pinger(use_pinger);
+}
+
+inline void setup_timer(void)
 {
     TACTL   = TASSEL_2 | ID_0 | MC_2;
     TACCTL0 = CM_1 | CCIS_1 | SCS | CAP | CCIE;
     TACCTL1 = CM_1 | CCIS_1 | CAP | SCS | CCIE;
+    TB0CTL =  TBSSEL_2 | ID_1 | MC_1;
+    //TBCCTL0 = CCIE;
+    TB0CCR0 =  0xFFF0;
+
+
     //TACCTL2 = CM0 | CCIS_1 | CAP | SCS | CCIE;
 }
 
-void setup_clock(void)
+inline void setup_clock(void)
 {
     BCSCTL1 = CALBC1_1MHZ;                // DCO = 1 MHz
     //BCSCTL2 |= DIVS_3;
     DCOCTL  = CALDCO_1MHZ;                // DCO = 1 MHz
+}
+
+static inline void calibrate(void)
+{
+    int32_t newLeftOffset = FOLLOWING_DISTANCE - leftPinger.echoTime;
+    int32_t newRightOffset = FOLLOWING_DISTANCE - rightPinger.echoTime;
+    leftOffset += newLeftOffset;
+    rightOffset += newRightOffset;
+
+    if (calibrationCount == 0)
+    {
+        leftOffset /= TOTAL_CALBRATION_STEPS;
+        rightOffset /= TOTAL_CALBRATION_STEPS;
+    }
+}
+
+static inline void drive(void)
+{
+    uint32_t newLeftEcho = leftPinger.echoTime + leftOffset;
+    uint32_t newRightEcho = rightPinger.echoTime + rightOffset;
+
+#if 0
+    uart_putsUint32(newLeftEcho);
+    uart_putsUint32(newRightEcho);
+#else
+    uint32_t currentDistance = (newLeftEcho + newRightEcho) / 2;
+
+    if (currentDistance > (FOLLOWING_DISTANCE + DISTANCE_TOL))
+    {
+        motor_full_speed(FORWARD);
+        drive_state = 1;
+    }
+    else if (currentDistance < (FOLLOWING_DISTANCE - DISTANCE_TOL))
+    {
+        motor_full_speed(REVERSE);
+        drive_state = 2;
+    }
+    else if ((FOLLOWING_DISTANCE - DISTANCE_TOL) <= currentDistance && currentDistance <= (FOLLOWING_DISTANCE + DISTANCE_TOL) && drive_state != 0)
+    {
+        motor_stop();
+        drive_state = 0;
+    }
+
+#endif
+
 }
 
 void main(void)
@@ -147,14 +225,18 @@ void main(void)
 
     setup_clock();
 
-    uart_init(&config);
+    //uart_init(&config);
+    motor_init();
 
-    uart_puts("STARTCOL");
+    //uart_puts("STARTCOL");
 
     P1DIR |= 0x03;                            // Set pin P1.0 to output
     P1OUT &= ~0x03;
+    P1OUT |= 0x01;
 
     //P2SEL2 = 0;
+    //motor_full_speed(FORWARD);
+
 
     while ( 1)
     {
@@ -162,25 +244,27 @@ void main(void)
         //start_pinger(leftPinger);
         // start_pinger(rightPinger);
         //Go to low Power Mode
+        use_pinger = &leftPinger;
+        TB0CTL |= (TBCLR);
+        TB0CTL |= TBIE | ID_1 | MC_1;
+        TB0CCTL0 |= CCIE;
 
-        // Calc new location and send to base
-        TACTL   |= TAIE;
         __enable_interrupt();
         __low_power_mode_1();
         __disable_interrupt();
 
-        //uart_puts("Hello World\n");
-        //uart_puts("\nLeft Pinger:\t");
-        uart_putsUint32(leftPinger.echoTime);
 
-        //uart_puts("\tRight Pinger:\t");
-        uart_putsUint32(rightPinger.echoTime);
-        //volatile uint16_t i = 100;
+        // Calibrate or drive
+        if (calibrationCount != 0)
+        {
+            calibrationCount--;
+            calibrate();
+        }
+        else
+        {
+            //motor_full_speed(FORWARD);
+            drive();
 
-        //while (i--);
-
-        // i = 10000;
-
-        // while (i--);
+        }
     }
 }
