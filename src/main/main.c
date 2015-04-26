@@ -11,7 +11,7 @@
 #define DRIVE_METHOD 3
 #define MATLAB_STUFF 0
 #define CYCLES_TO_CM 64
-#define USE_RAW 0
+#define USE_RAW 1
 
 #define ABS(x) (((x) < 0) ? -(x) : (x))
 
@@ -20,17 +20,21 @@
 uart_config_t config = { .baud = 9600 };
 #endif
 
-static const uint32_t CALIBRATING_DISTANCE = CYCLES_TO_CM * 30; //cycles
-static const uint32_t FOLLOWING_DISTANCE = 1 * CYCLES_TO_CM * 30; //cycles
+static const uint32_t CALIBRATING_DISTANCE = 2 * CYCLES_TO_CM * 30; //cycles
+static const uint32_t FOLLOWING_DISTANCE = 2 * CYCLES_TO_CM * 30; //cycles
 static const uint32_t DISTANCE_TOL = CYCLES_TO_CM * 10;
-static const uint32_t PINGER_OFFSET_TOL_LOWER = CYCLES_TO_CM * 60;
-static const uint32_t PINGER_OFFSET_TOL_UPPER = CYCLES_TO_CM * 80;
+static const uint32_t PINGER_OFFSET_TOL_LOWER = CYCLES_TO_CM * 20;
+static const uint32_t PINGER_OFFSET_TOL_UPPER = CYCLES_TO_CM * 60;
 static const uint32_t PINGER_LIMIT = CYCLES_TO_CM * 400;
-static const uint8_t SPEED_SLOPE = 2;
-static const uint8_t SPEED_START_OFFSET = 9;
+static const uint8_t SPEED_SLOPE_FOW = 2;
+static const uint8_t SPEED_SLOPE_REV = 4;
+static const uint8_t SPEED_START_OFFSET_FOR = 9;
+static const uint8_t SPEED_START_OFFSET_REV = 19;
 static const uint8_t SPEED_LIMIT = 90;
-static const uint8_t TURN_SPEED_LOWER = 20;
-static const uint8_t TURN_SPEED_UPPER = 40;
+
+static const uint8_t TURN_SPEED_SLOPE = 2;
+static const uint8_t TURN_SPEED_LOWER = 25;
+static const uint8_t TURN_SPEED_UPPER = 45;
 
 static uint8_t calibrationCount = TOTAL_CALBRATION_STEPS;
 static int32_t leftOffset = 0;
@@ -249,9 +253,9 @@ static inline void drive(void)
         int8_t speed = distanceToTarget / (SPEED_SLOPE * CYCLES_TO_CM);
 
         if (distanceToTarget < 0)
-            speed += -SPEED_START_OFFSET;
+            speed += -SPEED_START_OFFSET_FOR;
         else
-            speed += SPEED_START_OFFSET;
+            speed += SPEED_START_OFFSET_FOR;
 
         if (speed >= SPEED_LIMIT) speed = SPEED_LIMIT;
 
@@ -266,30 +270,30 @@ static inline void drive(void)
 #if USE_RAW == 0
     int32_t leftRightDiff = newLeftEcho - newRightEcho;
 #else
-    int32_t leftRightDiff = leftPinger.echoTime - rightPinger.echoTime
+    int32_t leftRightDiff = leftPinger.echoTime - rightPinger.echoTime;
 #endif
 
     if (leftPinger.echoTime >= PINGER_LIMIT)
     {
-        motor_spin(TURN_SPEED_LOWER + TURN_SPEED_UPPER);
+        motor_spin(TURN_SPEED_UPPER);
     }
     else if (rightPinger.echoTime >= PINGER_LIMIT)
     {
-        motor_spin(-(TURN_SPEED_LOWER + TURN_SPEED_UPPER));
+        motor_spin(-TURN_SPEED_UPPER);
     }
     else if (ABS(distanceToTarget) <= DISTANCE_TOL)
     {
         int8_t speed = 0;
 
-        if ( ABS(leftRightDiff) > PINGER_OFFSET_TOL_LOWER)
+        if ( ABS(leftRightDiff) >= PINGER_OFFSET_TOL_LOWER)
         {
-            if (ABS(leftRightDiff) > PINGER_OFFSET_TOL_UPPER)
+            if (ABS(leftRightDiff) >= PINGER_OFFSET_TOL_UPPER)
             {
                 speed = sign32(leftRightDiff) * TURN_SPEED_UPPER;
             }
             else
             {
-                speed = sign32(leftRightDiff) * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER) / (CYCLES_TO_CM)) + TURN_SPEED_LOWER);
+                speed = sign32(leftRightDiff) * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER) / (TURN_SPEED_SLOPE * CYCLES_TO_CM)) + TURN_SPEED_LOWER);
             }
 
             motor_spin(speed);
@@ -301,14 +305,28 @@ static inline void drive(void)
     }
     else
     {
-        int8_t speed = distanceToTarget / (SPEED_SLOPE * CYCLES_TO_CM);
+        int16_t speed = 0;
+
+        if (distanceToTarget > 0)
+        {
+            speed = distanceToTarget / (SPEED_SLOPE_FOW * CYCLES_TO_CM);
+        }
+        else
+        {
+            speed = (distanceToTarget * SPEED_SLOPE_REV) / (CYCLES_TO_CM);
+        }
+
 
         if (distanceToTarget < 0)
-            speed += -SPEED_START_OFFSET;
+            speed += -SPEED_START_OFFSET_REV;
         else
-            speed += SPEED_START_OFFSET;
+            speed += SPEED_START_OFFSET_FOR;
 
+        if (speed >= SPEED_LIMIT) speed = SPEED_LIMIT;
 
+        if (speed <= -SPEED_LIMIT) speed = -SPEED_LIMIT;
+
+        // Calculate Turn Speed
         int8_t speed1 = speed;
         int8_t speed2 = speed;
 
@@ -317,13 +335,13 @@ static inline void drive(void)
         {
             if (ABS(leftRightDiff) > PINGER_OFFSET_TOL_UPPER)
             {
-                speed1 += (leftRightDiff < 0) ? -TURN_SPEED_UPPER :  TURN_SPEED_UPPER;
-                speed2 -= (leftRightDiff < 0) ? -TURN_SPEED_UPPER :  TURN_SPEED_UPPER;
+                speed1 += sign32(leftRightDiff) * TURN_SPEED_UPPER;
+                speed2 -= sign32(leftRightDiff) * TURN_SPEED_UPPER;
             }
             else
             {
-                speed1 += (leftRightDiff / CYCLES_TO_CM);
-                speed2 -= (leftRightDiff / CYCLES_TO_CM);
+                speed1 += sign32(leftRightDiff) * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER) / (TURN_SPEED_SLOPE * CYCLES_TO_CM)) + TURN_SPEED_LOWER);
+                speed2 -= sign32(leftRightDiff) * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER) / (TURN_SPEED_SLOPE * CYCLES_TO_CM)) + TURN_SPEED_LOWER);
             }
         }
 
