@@ -11,7 +11,7 @@
 #define DRIVE_METHOD 3
 #define MATLAB_STUFF 0
 #define CYCLES_TO_CM 64
-#define USE_RAW 1
+#define USE_RAW 0
 
 #define ABS(x) (((x) < 0) ? -(x) : (x))
 
