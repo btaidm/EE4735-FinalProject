@@ -20,18 +20,25 @@
 uart_config_t config = { .baud = 9600 };
 #endif
 
-static const uint32_t CALIBRATING_DISTANCE = 2 * CYCLES_TO_CM * 30; //cycles
-static const uint32_t FOLLOWING_DISTANCE = 2 * CYCLES_TO_CM * 30; //cycles
+static const uint32_t CALIBRATING_DISTANCE = 1 * CYCLES_TO_CM * 30; //cycles
+static const uint32_t FOLLOWING_DISTANCE = 1 * CYCLES_TO_CM * 30; //cycles
 static const uint32_t DISTANCE_TOL = CYCLES_TO_CM * 10;
+
+static const uint8_t SPEED_SLOPE_FOW_1 = 2;
+static const uint8_t SPEED_SLOPE_FOW_2 = 2;
+static const uint8_t SPEED_START_OFFSET_FOR_1 = 15;
+static const uint8_t SPEED_START_OFFSET_FOR_2 = 55;
+static const uint32_t SPEED_TOL_FOW_UPPER = CYCLES_TO_CM * 30;
+
+
+static const uint8_t SPEED_SLOPE_REV = 4;
+static const uint8_t SPEED_START_OFFSET_REV = 19;
+
+static const uint8_t SPEED_LIMIT = 90;
+
 static const uint32_t PINGER_OFFSET_TOL_LOWER = CYCLES_TO_CM * 20;
 static const uint32_t PINGER_OFFSET_TOL_UPPER = CYCLES_TO_CM * 60;
 static const uint32_t PINGER_LIMIT = CYCLES_TO_CM * 400;
-static const uint8_t SPEED_SLOPE_FOW = 2;
-static const uint8_t SPEED_SLOPE_REV = 4;
-static const uint8_t SPEED_START_OFFSET_FOR = 9;
-static const uint8_t SPEED_START_OFFSET_REV = 19;
-static const uint8_t SPEED_LIMIT = 90;
-
 static const uint8_t TURN_SPEED_SLOPE = 2;
 static const uint8_t TURN_SPEED_LOWER = 25;
 static const uint8_t TURN_SPEED_UPPER = 45;
@@ -309,18 +316,19 @@ static inline void drive(void)
 
         if (distanceToTarget > 0)
         {
-            speed = distanceToTarget / (SPEED_SLOPE_FOW * CYCLES_TO_CM);
+            if (distanceToTarget > SPEED_TOL_FOW_UPPER)
+            {
+                speed = ((distanceToTarget - SPEED_TOL_FOW_UPPER)) / (SPEED_SLOPE_FOW_2 * CYCLES_TO_CM) + SPEED_START_OFFSET_FOR_2;
+            }
+            else
+            {
+                speed = ((distanceToTarget - DISTANCE_TOL) * SPEED_SLOPE_FOW_1) / (CYCLES_TO_CM) + SPEED_START_OFFSET_FOR_1;
+            }
         }
         else
         {
-            speed = (distanceToTarget * SPEED_SLOPE_REV) / (CYCLES_TO_CM);
+            speed = (distanceToTarget * SPEED_SLOPE_REV) / (CYCLES_TO_CM) - SPEED_START_OFFSET_REV;
         }
-
-
-        if (distanceToTarget < 0)
-            speed += -SPEED_START_OFFSET_REV;
-        else
-            speed += SPEED_START_OFFSET_FOR;
 
         if (speed >= SPEED_LIMIT) speed = SPEED_LIMIT;
 
