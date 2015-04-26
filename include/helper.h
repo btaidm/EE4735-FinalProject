@@ -62,4 +62,19 @@ inline uint8_t uint8ToChar(uint8_t num, char* temp)
     return 2;
 }
 
+static inline int8_t sign32(int32_t x)
+{
+    return (x >> 31) | ((uint32_t) - x >> 31);
+}
+
+static inline int8_t sign16(int16_t x)
+{
+    return (x >> 15) | ((uint16_t) - x >> 15);
+}
+
+static inline int8_t sign8(int8_t x)
+{
+    return (x >> 7) | ((uint8_t) - x >> 7);
+}
+
 #endif

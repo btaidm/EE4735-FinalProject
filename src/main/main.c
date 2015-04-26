@@ -9,22 +9,28 @@
 
 #define TOTAL_CALBRATION_STEPS 10
 #define DRIVE_METHOD 3
-#define MATLAB_STUFF 1
+#define MATLAB_STUFF 0
 #define CYCLES_TO_CM 64
+#define USE_RAW 0
+
+#define ABS(x) (((x) < 0) ? -(x) : (x))
 
 #if MATLAB_STUFF == 1
 #include "uart.h"
 uart_config_t config = { .baud = 9600 };
 #endif
 
-static const uint32_t FOLLOWING_DISTANCE = 2 * CYCLES_TO_CM * 30; //cycles
 static const uint32_t CALIBRATING_DISTANCE = CYCLES_TO_CM * 30; //cycles
+static const uint32_t FOLLOWING_DISTANCE = 1 * CYCLES_TO_CM * 30; //cycles
 static const uint32_t DISTANCE_TOL = CYCLES_TO_CM * 10;
-static const uint32_t PINGER_OFFSET_TOL = CYCLES_TO_CM * 20;
+static const uint32_t PINGER_OFFSET_TOL_LOWER = CYCLES_TO_CM * 60;
+static const uint32_t PINGER_OFFSET_TOL_UPPER = CYCLES_TO_CM * 80;
+static const uint32_t PINGER_LIMIT = CYCLES_TO_CM * 400;
 static const uint8_t SPEED_SLOPE = 2;
 static const uint8_t SPEED_START_OFFSET = 9;
 static const uint8_t SPEED_LIMIT = 90;
-static const uint8_t TURN_SPEED = 45;
+static const uint8_t TURN_SPEED_LOWER = 20;
+static const uint8_t TURN_SPEED_UPPER = 40;
 
 static uint8_t calibrationCount = TOTAL_CALBRATION_STEPS;
 static int32_t leftOffset = 0;
@@ -189,8 +195,8 @@ inline void setup_clock(void)
 
 static inline void calibrate(void)
 {
-    int32_t newLeftOffset = (int32_t)CALIBRATING_DISTANCE - (int32_t)leftPinger.echoTime;
-    int32_t newRightOffset = (int32_t)CALIBRATING_DISTANCE - (int32_t)rightPinger.echoTime;
+    int32_t newLeftOffset = CALIBRATING_DISTANCE - leftPinger.echoTime;
+    int32_t newRightOffset = CALIBRATING_DISTANCE - rightPinger.echoTime;
     leftOffset += newLeftOffset;
     rightOffset += newRightOffset;
 
@@ -256,54 +262,83 @@ static inline void drive(void)
 
 #elif DRIVE_METHOD == 3
     int32_t distanceToTarget = currentDistance - FOLLOWING_DISTANCE;
-    int32_t leftRightOffset = newLeftEcho - newRightEcho;
 
-    // if (-DISTANCE_TOL <= distanceToTarget && distanceToTarget <= DISTANCE_TOL)
-    // {
-    if (-PINGER_OFFSET_TOL <= leftRightOffset && leftRightOffset <= PINGER_OFFSET_TOL)
+#if USE_RAW == 0
+    int32_t leftRightDiff = newLeftEcho - newRightEcho;
+#else
+    int32_t leftRightDiff = leftPinger.echoTime - rightPinger.echoTime
+#endif
+
+    if (leftPinger.echoTime >= PINGER_LIMIT)
     {
-        motor_stop();
+        motor_spin(TURN_SPEED_LOWER + TURN_SPEED_UPPER);
+    }
+    else if (rightPinger.echoTime >= PINGER_LIMIT)
+    {
+        motor_spin(-(TURN_SPEED_LOWER + TURN_SPEED_UPPER));
+    }
+    else if (ABS(distanceToTarget) <= DISTANCE_TOL)
+    {
+        int8_t speed = 0;
+
+        if ( ABS(leftRightDiff) > PINGER_OFFSET_TOL_LOWER)
+        {
+            if (ABS(leftRightDiff) > PINGER_OFFSET_TOL_UPPER)
+            {
+                speed = sign32(leftRightDiff) * TURN_SPEED_UPPER;
+            }
+            else
+            {
+                speed = sign32(leftRightDiff) * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER) / (CYCLES_TO_CM)) + TURN_SPEED_LOWER);
+            }
+
+            motor_spin(speed);
+        }
+        else
+        {
+            motor_stop();
+        }
     }
     else
     {
-        if (leftRightOffset < 0)
-            motor_spin(-TURN_SPEED);
+        int8_t speed = distanceToTarget / (SPEED_SLOPE * CYCLES_TO_CM);
+
+        if (distanceToTarget < 0)
+            speed += -SPEED_START_OFFSET;
         else
-            motor_spin(TURN_SPEED);
+            speed += SPEED_START_OFFSET;
+
+
+        int8_t speed1 = speed;
+        int8_t speed2 = speed;
+
+
+        if ( ABS(leftRightDiff) > PINGER_OFFSET_TOL_LOWER)
+        {
+            if (ABS(leftRightDiff) > PINGER_OFFSET_TOL_UPPER)
+            {
+                speed1 += (leftRightDiff < 0) ? -TURN_SPEED_UPPER :  TURN_SPEED_UPPER;
+                speed2 -= (leftRightDiff < 0) ? -TURN_SPEED_UPPER :  TURN_SPEED_UPPER;
+            }
+            else
+            {
+                speed1 += (leftRightDiff / CYCLES_TO_CM);
+                speed2 -= (leftRightDiff / CYCLES_TO_CM);
+            }
+        }
+
+        if (speed1 >= SPEED_LIMIT) speed1 = SPEED_LIMIT;
+
+        if (speed1 <= -SPEED_LIMIT) speed1 = -SPEED_LIMIT;
+
+        if (speed2 >= SPEED_LIMIT) speed2 = SPEED_LIMIT;
+
+        if (speed2 <= -SPEED_LIMIT) speed2 = -SPEED_LIMIT;
+
+        motor_set(speed1, MOTOR_1);
+        motor_set(speed2, MOTOR_2);
+        //motor_set_both(speed);
     }
-
-    // }
-    // else
-    // {
-    //     int8_t speed = distanceToTarget / (SPEED_SLOPE * CYCLES_TO_CM);
-
-    //     if (distanceToTarget < 0)
-    //         speed += -SPEED_START_OFFSET;
-    //     else
-    //         speed += SPEED_START_OFFSET;
-
-
-    //     int8_t speed1 = speed;
-    //     int8_t speed2 = speed;
-
-    //     if (-PINGER_OFFSET_TOL <= leftRightOffset && leftRightOffset <= PINGER_OFFSET_TOL)
-    //     {
-    //         speed1 += (leftRightOffset < 0) ? -TURN_SPEED : TURN_SPEED;
-    //         speed2 -= (leftRightOffset < 0) ? -TURN_SPEED : TURN_SPEED;
-    //     }
-
-    //     if (speed1 >= SPEED_LIMIT) speed1 = SPEED_LIMIT;
-
-    //     if (speed1 <= -SPEED_LIMIT) speed1 = -SPEED_LIMIT;
-
-    //     if (speed2 >= SPEED_LIMIT) speed2 = SPEED_LIMIT;
-
-    //     if (speed2 <= -SPEED_LIMIT) speed2 = -SPEED_LIMIT;
-
-    //     motor_set(speed1, MOTOR_1);
-    //     motor_set(speed2, MOTOR_2);
-    //     //motor_set_both(speed);
-    // }
 
 #endif
 
@@ -312,7 +347,14 @@ static inline void drive(void)
 void main(void)
 {
     WDTCTL = WDTPW | WDTHOLD;                 // Stop watchdog timer
-    P2SEL = 0;
+    P2SEL = 0; // }
+    // else
+    // {
+    //     if (leftRightDiff < 0)
+    //         motor_spin(-TURN_SPEED);
+    //     else
+    //         motor_spin(TURN_SPEED);
+    // }
     setup_timer();
     setup_pinger(&leftPinger);
     setup_pinger(&rightPinger);
