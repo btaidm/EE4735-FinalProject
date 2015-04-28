@@ -20,8 +20,8 @@
 uart_config_t config = { .baud = 9600 };
 #endif
 
-static const uint32_t CALIBRATING_DISTANCE = 2 * CYCLES_TO_CM * 30; //cycles
-static const uint32_t FOLLOWING_DISTANCE = 2 * CYCLES_TO_CM * 30; //cycles
+static const uint32_t CALIBRATING_DISTANCE = 1 * CYCLES_TO_CM * 30; //cycles
+static const uint32_t FOLLOWING_DISTANCE = 1 * CYCLES_TO_CM * 30; //cycles
 static const uint32_t DISTANCE_TOL = CYCLES_TO_CM * 10;
 static const uint32_t PINGER_OFFSET_TOL_LOWER = CYCLES_TO_CM * 20;
 static const uint32_t PINGER_OFFSET_TOL_UPPER = CYCLES_TO_CM * 60;
@@ -32,8 +32,8 @@ static const uint8_t SPEED_START_OFFSET_FOR = 9;
 static const uint8_t SPEED_START_OFFSET_REV = 19;
 static const uint8_t SPEED_LIMIT = 90;
 
-static const uint8_t TURN_SPEED_SLOPE = 2;
-static const uint8_t TURN_SPEED_LOWER = 25;
+static const uint8_t TURN_SPEED_SLOPE = 4;
+static const uint8_t TURN_SPEED_LOWER = 5;
 static const uint8_t TURN_SPEED_UPPER = 45;
 
 static uint8_t calibrationCount = TOTAL_CALBRATION_STEPS;
@@ -41,6 +41,14 @@ static int32_t leftOffset = 0;
 static int32_t rightOffset = 0;
 static uint8_t drive_state = 0;
 
+#define HIST_SIZE 3
+
+uint32_t leftHist[HIST_SIZE] = {0};
+uint32_t rightHist[HIST_SIZE] = {0};
+
+uint8_t histCount = 0;
+
+//static const uint32_t CROSS_POINT = 1 * CYCLES_TO_CM * 30;
 
 
 #define MAX_TICKS 10000        // Blink length (loop passes)
@@ -59,6 +67,33 @@ pinger_t rightPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 1}, \
 
 pinger_t* use_pinger = &leftPinger;
 
+static inline uint32_t getMedian(uint32_t* hist, uint8_t count)
+{
+    uint32_t max = hist[0];
+    uint32_t med = 0;
+
+    for (uint8_t i = 0; i < HIST_SIZE; i++)
+    {
+        if (hist[i] > max)
+        {
+            med = max;
+            max = hist[i];
+            continue;
+        }
+
+        if (hist[i] > med)
+        {
+            med = hist[i];
+        }
+    }
+
+    return med;
+}
+
+static inline void putValue(uint32_t* hist, uint8_t count, uint32_t value)
+{
+    hist[(count) % HIST_SIZE] = value;
+}
 
 
 __INTERRUPT(TIMERA0_VECTOR) void timara0_isr(void)
@@ -215,6 +250,17 @@ static inline void drive(void)
 {
     uint32_t newLeftEcho = leftPinger.echoTime + leftOffset;
     uint32_t newRightEcho = rightPinger.echoTime + rightOffset;
+    putValue(leftHist, histCount, newLeftEcho);
+    putValue(rightHist, histCount, newRightEcho);
+
+    if (histCount == 254)
+        histCount = 0;
+    else
+        histCount++;
+
+    newLeftEcho = getMedian(leftHist, histCount);
+    newRightEcho = getMedian(rightHist, histCount);
+
     uint32_t currentDistance = (newLeftEcho + newRightEcho) / 2;
 
 #if MATLAB_STUFF == 1
@@ -330,6 +376,8 @@ static inline void drive(void)
         int8_t speed1 = speed;
         int8_t speed2 = speed;
 
+        // if (currentDistance > CROSS_POINT)
+        //     leftRightDiff = -leftRightDiff;
 
         if ( ABS(leftRightDiff) > PINGER_OFFSET_TOL_LOWER)
         {
