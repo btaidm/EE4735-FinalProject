@@ -1,5 +1,8 @@
 # Stalker Bot
 
+## Authors
+Tim Bradt --- Evan Bajek
+
 ## Hardware Requirements
 
 This is a project for the eZ430-RF2500, or other MSP430 processor that has
