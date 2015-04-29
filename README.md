@@ -75,7 +75,7 @@ The code can be built either with *msp430-gcc* or *IAR*.
 This requires GNU Make.
 
 Before you compile, make sure that *msp430-gcc* is on the PATH and that you
-change the Makefile variable 'MSP430_DIR' to `MSP430-TOOLCHAIN-PATH/include`.
+change the Makefile variable `MSP430_DIR` to `MSP430-TOOLCHAIN-PATH/include`.
 
 Example: if *msp430-gcc* path is `/opt/msp430-toolchain/bin/msp430-gcc`, 
 'MSP430_DIR' should be `/opt/msp430-toolchain/include`.
