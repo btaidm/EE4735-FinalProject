@@ -8,7 +8,6 @@
 // Defines the type of port for the GPIO registers
 #define PORT_TYPE volatile unsigned char
 
-
 // Defines a macro for Interrupts the Works with GCC and IAR
 #if defined(__ICC430__) // Check for IAR vs GCC
 #define __INTERRUPT(x) \
@@ -20,21 +19,37 @@
 #define __INTERRUPT(x)
 #endif
 
-#define ARRAY_SIZE(array) (sizeof(array)/sizeof(array[0]))
-
-static inline int8_t sign32(int32_t x)
+/// ----------------------------------------
+/// Func: Gets the sign of a 32 bit number
+/// Args: Num = Number to get sign of
+/// Retn: Sign of Number: -1 being negative,
+///	      0 for zero, and 1 for positive
+/// ----------------------------------------
+static inline int8_t Sign32(int32_t num)
 {
-    return (x >> 31) | ((uint32_t) - x >> 31);
+    return (num >> 31) | ((uint32_t) - num >> 31);
 }
 
-static inline int8_t sign16(int16_t x)
+/// ----------------------------------------
+/// Func: Gets the sign of a 16 bit number
+/// Args: Num = Number to get sign of
+/// Retn: Sign of Number: -1 being negative,
+///	      0 for zero, and 1 for positive
+/// ----------------------------------------
+static inline int8_t Sign16(int16_t num)
 {
-    return (x >> 15) | ((uint16_t) - x >> 15);
+    return (num >> 15) | ((uint16_t) - num >> 15);
 }
 
-static inline int8_t sign8(int8_t x)
+/// ----------------------------------------
+/// Func: Gets the sign of a 8 bit number
+/// Args: Num = Number to get sign of
+/// Retn: Sign of Number: -1 being negative,
+///	      0 for zero, and 1 for positive
+/// ----------------------------------------
+static inline int8_t Sign8(int8_t num)
 {
-    return (x >> 7) | ((uint8_t) - x >> 7);
+    return (num >> 7) | ((uint8_t) - num >> 7);
 }
 
 #endif
