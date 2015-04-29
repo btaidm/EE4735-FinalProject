@@ -4,29 +4,41 @@
 #include "helper.h"
 #include <stdint.h>
 
+/// Struct contains information about Pinger Ports, Pins, and Echo Time
 typedef struct
 {
     struct
     {
-        PORT_TYPE* out;
-        PORT_TYPE* dir;
-        uint8_t pin;
-    } trigger;
+        PORT_TYPE* out; // GPIO Port Register for trigger pulse
+        PORT_TYPE* dir; // GPIO Direction Register for trigger pulse
+        uint8_t pin;    // GPIO Pin for trigger pulse
+    } trigger; // Trigger Pulse Information
 
     struct
     {
-        PORT_TYPE* sel;
-        PORT_TYPE* dir;
-        PORT_TYPE* in;
-        uint8_t pin;
-    } echo;
-    volatile uint32_t echoTime;
-    uint8_t ledpin;
+        PORT_TYPE* sel; // GPIO Port Register for echo pulse
+        PORT_TYPE* dir; // GPIO Direction Register for echo pulse
+        uint8_t pin;    // GPIO Pin for echo pulse
+    } echo; // Echo Pulse Information
+    volatile uint32_t echoTime; // Echo Time for Pinger given in Cycles
+    uint8_t ledpin; // Pin for toggling on board led for visual debugging
 
 } pinger_t;
 
-void SetupPinger(pinger_t* pinger);
+/// ------------------------------------------------
+/// Func: Setups up a pingers GPIO pins
+/// Args: pingerPtr = pointer to pinger to setup
+///                   uses pointer to decrease data 
+///                   usage on stack
+/// ------------------------------------------------
+void SetupPinger(pinger_t* pingerPtr);
 
-void StartPinger(pinger_t* pinger);
+/// ------------------------------------------------
+/// Func: Send Trigger pulse to pinger GPIO
+/// Args: pingerPtr = pointer to pinger to trigger
+///                   uses pointer to decrease data 
+///                   usage on stack
+/// ------------------------------------------------
+void StartPinger(pinger_t* pingerPtr);
 
 #endif

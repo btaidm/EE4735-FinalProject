@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "pinger.h"
 
-void SetupPinger(pinger_t* pinger)
+void SetupPinger(pinger_t* pingerPtr)
 {
     *(pinger->trigger.dir) |= 0x01 << pinger->trigger.pin;
     *(pinger->trigger.out) &= ~( 0x01 << pinger->trigger.pin);
@@ -10,7 +10,7 @@ void SetupPinger(pinger_t* pinger)
     *(pinger->echo.sel) |= ( 0x01 << pinger->echo.pin);
 }
 
-void StartPinger(pinger_t* pinger)
+void StartPinger(pinger_t* pingerPtr)
 {
     P1OUT ^= ( 0x01 << pinger->ledpin);
     *(pinger->trigger.out) |= ( 0x01 << pinger->trigger.pin);
