@@ -4,6 +4,15 @@
 * Tim Bradt 
 * Evan Bajek
 
+## File Layout
+
+* src/ - contains the source for the 
+* include/ - contains the include files for the project excluding the
+             MSP430 system headers.
+* matlab/ - contains the matlab scripts for collecting 
+            data as well as the data
+* IAR/ - contains the workspace for IAR
+
 ## Hardware Requirements
 
 This is a project for the eZ430-RF2500, or other MSP430 processor that has
