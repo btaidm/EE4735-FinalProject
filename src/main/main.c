@@ -437,12 +437,19 @@ static inline void Drive(void)
                 // Turn at calculated speed in correct direction
                 // Speed is calculated based on a point slope based on a given
                 // slope, min speed, and lower tolerance
-                speed1 += Sign32(leftRightDiff) * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER) / (TURN_SPEED_SLOPE * CYCLES_TO_CM)) + TURN_SPEED_LOWER);
-                speed2 -= Sign32(leftRightDiff) * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER) / (TURN_SPEED_SLOPE * CYCLES_TO_CM)) + TURN_SPEED_LOWER);
+                speed1 += Sign32(leftRightDiff)
+                        * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER) 
+                        / (TURN_SPEED_SLOPE * CYCLES_TO_CM)) 
+                        + TURN_SPEED_LOWER);
+                        
+                speed2 -= Sign32(leftRightDiff) 
+                        * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER) 
+                        / (TURN_SPEED_SLOPE * CYCLES_TO_CM)) 
+                        + TURN_SPEED_LOWER);
             }
         }
 
-        // Fi
+        // Final Speed Check
         if (speed1 >= SPEED_LIMIT) speed1 = SPEED_LIMIT;
 
         if (speed1 <= -SPEED_LIMIT) speed1 = -SPEED_LIMIT;
@@ -451,69 +458,75 @@ static inline void Drive(void)
 
         if (speed2 <= -SPEED_LIMIT) speed2 = -SPEED_LIMIT;
 
+        // Set the motors to their proper speeds
         MotorSet(speed1, MOTOR_1);
         MotorSet(speed2, MOTOR_2);
-        //MotorSetBoth(speed);
     }
 
 #endif
 
 }
 
+/// --------------------------------------------------------------
+/// Func: Main function of Stalker Bot, this contains the main
+///       flow of events.
+/// --------------------------------------------------------------
 void main(void)
 {
+    // Disable watch dog - woof!
     WDTCTL = WDTPW | WDTHOLD;                 // Stop watchdog timer
-    P2SEL = 0;
+    
     SetupClock();
     SetupPinger(&leftPinger);
     SetupPinger(&rightPinger);
-
     SetupTimer();
 
 #if MATLAB_STUFF == 1
+    // Enable UART for sending to Matlab
     UartInit(&config);
 #else
+    // Enable UART for driving
     MotorInit();
 #endif
 
 #if MATLAB_STUFF == 1
+    // Tell MATLAB here comes data
     UartPuts("STARTCOL");
 #endif
+    // Set up the LED pins for the pingers
     P1DIR |= 0x03;                            // Set pin P1.0 to output
     P1OUT &= ~0x03;
     P1OUT |= 0x01;
 
-    //P2SEL2 = 0;
-    //MotorFullSpeed(FORWARD);
-
-
+    // Main Loop
     while ( 1)
     {
-        // Get the Pinger Distances
-        //StartPinger(leftPinger);
-        // StartPinger(rightPinger);
-        //Go to low Power Mode
+        // Start with Left pingers
         usePinger = &leftPinger;
-        //TB0CTL |= (TBCLR);
-        //TB0CTL |= TBIE;
+        
+        // Enable Timer IRQ
         TB0CCTL0 |= CCIE;
-        //TACTL   |= TAIE;
+        
+        // Enable Interrupts
         __enable_interrupt();
+        // Enter Low power mode and wait for both left and right
+        // pingers to complete
         __low_power_mode_1();
+        
+        // Done with pingers until next time
+        // Want to be sure pingers don't up data at the wrong time
         __disable_interrupt();
 
 
         // Calibrate or Drive
         if (calibrationCount != 0)
         {
-            calibrationCount--;
+            calibrationCount--; // Decrease Calibration count 
             Calibrate();
         }
         else
         {
-            //MotorFullSpeed(FORWARD);
             Drive();
-
         }
     }
 }
