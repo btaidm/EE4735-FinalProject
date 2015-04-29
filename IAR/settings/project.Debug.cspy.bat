@@ -19,6 +19,22 @@
 @REM 
 
 
-"C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.0\common\bin\cspybat" "C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.0\430\bin\430proc.dll" "C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.0\430\bin\430fet.dll"  %1 --plugin "C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.0\430\bin\430bat.dll" --backend -B "-p" "C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.0\430\config\debugger\MSP430F2274.ddf" "--iv_base" "0xFFE0" "-d" "fet" "--erase_main_and_info" "--derivative" "MSP430F2274" "--protocol" "automatic" "--eem" "EMEX_LOW" "--port" "Automatic" "--connection" "ti_usb" "--settlingtime=0" "--msp430_dll" "msp430.dll" "--vccDefault" "3.3" "--jtag_speed" "medium" "--memtype" "F" 
+@echo off 
 
+if not "%1" == "" goto debugFile 
 
+@echo on 
+
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.2\common\bin\cspybat" -f "C:\Users\Tim\Documents\GitHub\EE4735-FinalProject\IAR\settings\project.Debug.general.xcl" --backend -f "C:\Users\Tim\Documents\GitHub\EE4735-FinalProject\IAR\settings\project.Debug.driver.xcl" 
+
+@echo off 
+goto end 
+
+:debugFile 
+
+@echo on 
+
+"C:\Program Files (x86)\IAR Systems\Embedded Workbench 7.2\common\bin\cspybat" -f "C:\Users\Tim\Documents\GitHub\EE4735-FinalProject\IAR\settings\project.Debug.general.xcl" "--debug_file=%1" --backend -f "C:\Users\Tim\Documents\GitHub\EE4735-FinalProject\IAR\settings\project.Debug.driver.xcl" 
+
+@echo off 
+:end

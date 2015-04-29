@@ -2,96 +2,101 @@
 
 <project>
   <fileVersion>2</fileVersion>
-  <fileChecksum>2959227279</fileChecksum>
+  <fileChecksum>3097834587</fileChecksum>
   <configuration>
     <name>Debug</name>
     <outputs>
-      <file>$PROJ_DIR$\Debug\Obj\uart.r43</file>
-      <file>$TOOLKIT_DIR$\inc\dlib\DLib_Defaults.h</file>
-      <file>$PROJ_DIR$\Debug\Obj\main.pbi</file>
-      <file>$TOOLKIT_DIR$\inc\intrinsics.h</file>
-      <file>$PROJ_DIR$\..\src\main\main.c</file>
-      <file>$PROJ_DIR$\..\src\pinger\pinger.c</file>
-      <file>$PROJ_DIR$\..\src\uart\uart.c</file>
       <file>$PROJ_DIR$\Debug\Obj\main.r43</file>
-      <file>$PROJ_DIR$\Debug\Exe\project.d43</file>
-      <file>$PROJ_DIR$\Debug\Obj\pinger.r43</file>
-      <file>$PROJ_DIR$\Debug\Obj\project.pbd</file>
-      <file>$TOOLKIT_DIR$\inc\msp430x22x4.h</file>
-      <file>$TOOLKIT_DIR$\inc\dlib\DLib_Product.h</file>
-      <file>$TOOLKIT_DIR$\inc\in430.h</file>
-      <file>$TOOLKIT_DIR$\inc\dlib\stdint.h</file>
-      <file>$TOOLKIT_DIR$\inc\dlib\yvals.h</file>
-      <file>$TOOLKIT_DIR$\inc\dlib\ycheck.h</file>
-      <file>$TOOLKIT_DIR$\inc\dlib\xencoding_limits.h</file>
-      <file>$TOOLKIT_DIR$\inc\dlib\DLib_Threads.h</file>
-      <file>$TOOLKIT_DIR$\lib\dlib\dl430fn.h</file>
-      <file>$TOOLKIT_DIR$\config\lnk430F2274.xcl</file>
+      <file>$TOOLKIT_DIR$\inc\intrinsics.h</file>
       <file>$PROJ_DIR$\..\include\helper.h</file>
-      <file>$TOOLKIT_DIR$\lib\dlib\dl430fn.r43</file>
-      <file>$PROJ_DIR$\Debug\Obj\uart.pbi</file>
-      <file>$PROJ_DIR$\..\include\pinger.h</file>
-      <file>$PROJ_DIR$\Debug\Obj\pinger.pbi</file>
-      <file>$TOOLKIT_DIR$\inc\dlib\ysizet.h</file>
-      <file>$TOOLKIT_DIR$\inc\dlib\string.h</file>
-      <file>$PROJ_DIR$\..\include\uart.h</file>
-      <file>$PROJ_DIR$\Debug\List\uart.i</file>
-      <file>$PROJ_DIR$\Debug\List\main.i</file>
+      <file>$PROJ_DIR$\Debug\Obj\uart.r43</file>
+      <file>$TOOLKIT_DIR$\inc\dlib\c\DLib_Defaults.h</file>
+      <file>$TOOLKIT_DIR$\inc\dlib\c\xencoding_limits.h</file>
+      <file>$TOOLKIT_DIR$\inc\dlib\c\string.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\pinger.__cstat.et</file>
       <file>$PROJ_DIR$\Debug\List\pinger.i</file>
+      <file>$PROJ_DIR$\Debug\Obj\uart.__cstat.et</file>
+      <file>$TOOLKIT_DIR$\inc\in430.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\motor_base.__cstat.et</file>
+      <file>$TOOLKIT_DIR$\inc\msp430x22x4.h</file>
+      <file>$TOOLKIT_DIR$\lib\dlib\dl430fn.h</file>
+      <file>$TOOLKIT_DIR$\inc\dlib\c\DLib_Threads.h</file>
+      <file>$TOOLKIT_DIR$\inc\dlib\c\stdint.h</file>
+      <file>$TOOLKIT_DIR$\inc\dlib\c\DLib_Product.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\motor_base.pbi</file>
+      <file>$PROJ_DIR$\Debug\List\uart.i</file>
+      <file>$PROJ_DIR$\..\include\uart.h</file>
+      <file>$PROJ_DIR$\Debug\Exe\project.ulp</file>
+      <file>$TOOLKIT_DIR$\inc\dlib\c\ysizet.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\motor_base.r43</file>
+      <file>$PROJ_DIR$\..\include\motor_base.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\main.__cstat.et</file>
       <file>$PROJ_DIR$\..\..\..\..\..\..\[ROOT_NODE]</file>
+      <file>$PROJ_DIR$\Debug\Exe\project.d43</file>
+      <file>$PROJ_DIR$\Debug\List\main.i</file>
+      <file>$TOOLKIT_DIR$\inc\dlib\c\ycheck.h</file>
+      <file>$PROJ_DIR$\Debug\Obj\pinger.r43</file>
+      <file>$TOOLKIT_DIR$\inc\dlib\c\yvals.h</file>
+      <file>$PROJ_DIR$\..\src\motor_base\motor_base.c</file>
+      <file>$PROJ_DIR$\Debug\Obj\uart.pbi</file>
+      <file>$PROJ_DIR$\..\src\uart\uart.c</file>
+      <file>$PROJ_DIR$\Debug\Obj\main.pbi</file>
+      <file>$PROJ_DIR$\..\include\pinger.h</file>
+      <file>$PROJ_DIR$\..\src\main\main.c</file>
+      <file>$PROJ_DIR$\Debug\Obj\pinger.pbi</file>
+      <file>$PROJ_DIR$\Debug\Obj\project.pbd</file>
+      <file>$PROJ_DIR$\..\src\pinger\pinger.c</file>
+      <file>$TOOLKIT_DIR$\lib\dlib\dl430fn.r43</file>
+      <file>$PROJ_DIR$\Debug\List\motor_base.i</file>
+      <file>$TOOLKIT_DIR$\config\linker\lnk430f2274.xcl</file>
     </outputs>
+    <file>
+      <name>[ROOT_NODE]</name>
+      <outputs>
+        <tool>
+          <name>XLINK</name>
+          <file> 26</file>
+        </tool>
+        <tool>
+          <name>ULP430</name>
+          <file> 20</file>
+        </tool>
+      </outputs>
+    </file>
     <file>
       <name>$PROJ_DIR$\..\..\..\..\..\..\[ROOT_NODE]</name>
       <outputs>
         <tool>
           <name>XLINK</name>
-          <file> 8</file>
+          <file> 26</file>
         </tool>
       </outputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\src\main\main.c</name>
-      <outputs>
-        <tool>
-          <name>ICC430</name>
-          <file> 30 7</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 2</file>
-        </tool>
-      </outputs>
+      <name>$PROJ_DIR$\Debug\Exe\project.d43</name>
       <inputs>
         <tool>
-          <name>ICC430</name>
-          <file> 11 13 3 14 16 15 1 19 12 17 18 24 21 28 27 26</file>
-        </tool>
-        <tool>
-          <name>BICOMP</name>
-          <file> 11 13 3 14 16 15 1 12 17 18 24 21 28 27 26</file>
+          <name>XLINK</name>
+          <file> 42 0 22 29 3 40</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\..\src\pinger\pinger.c</name>
+      <name>$PROJ_DIR$\..\src\motor_base\motor_base.c</name>
       <outputs>
         <tool>
-          <name>ICC430</name>
-          <file> 31 9</file>
+          <name>BICOMP</name>
+          <file> 17</file>
         </tool>
         <tool>
-          <name>BICOMP</name>
-          <file> 25</file>
+          <name>__cstat</name>
+          <file> 11</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
-          <name>ICC430</name>
-          <file> 11 13 3 14 16 15 1 19 12 17 18 24 21</file>
-        </tool>
-        <tool>
           <name>BICOMP</name>
-          <file> 11 13 3 14 16 15 1 12 17 18 24 21</file>
+          <file> 28 16 4 10 15 14 13 30 12 23 1 5</file>
         </tool>
       </inputs>
     </file>
@@ -99,52 +104,83 @@
       <name>$PROJ_DIR$\..\src\uart\uart.c</name>
       <outputs>
         <tool>
-          <name>ICC430</name>
-          <file> 29 0</file>
+          <name>BICOMP</name>
+          <file> 32</file>
         </tool>
         <tool>
-          <name>BICOMP</name>
-          <file> 23</file>
+          <name>__cstat</name>
+          <file> 9</file>
         </tool>
       </outputs>
       <inputs>
         <tool>
-          <name>ICC430</name>
-          <file> 11 13 3 21 14 16 15 1 19 12 17 18 27 26 28</file>
-        </tool>
-        <tool>
           <name>BICOMP</name>
-          <file> 11 13 3 21 14 16 15 1 12 17 18 27 26 28</file>
+          <file> 10 30 15 5 21 2 6 28 12 19 1 4 14 13 16</file>
         </tool>
       </inputs>
     </file>
     <file>
-      <name>$PROJ_DIR$\Debug\Exe\project.d43</name>
-      <inputs>
-        <tool>
-          <name>XLINK</name>
-          <file> 20 7 9 0 22</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\Debug\Obj\project.pbd</name>
-      <inputs>
-        <tool>
-          <name>BILINK</name>
-          <file> 2 25 23</file>
-        </tool>
-      </inputs>
-    </file>
-    <file>
-      <name>$PROJ_DIR$\..\..\..\..\..\..\[ROOT_NODE]</name>
+      <name>$PROJ_DIR$\..\src\main\main.c</name>
       <outputs>
         <tool>
-          <name>XLINK</name>
-          <file> 8</file>
+          <name>BICOMP</name>
+          <file> 34</file>
+        </tool>
+        <tool>
+          <name>ICC430</name>
+          <file> 27 0 22 29 3</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 24</file>
         </tool>
       </outputs>
+      <inputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 5 21 15 23 10 28 30 6 2 35 1 4 12 14 13 16</file>
+        </tool>
+        <tool>
+          <name>ICC430</name>
+          <file> 12 10 1 6 28 30 4 13 16 5 14 21 15 2 23 35 31 39 33 19</file>
+        </tool>
+      </inputs>
     </file>
+    <file>
+      <name>$PROJ_DIR$\..\src\pinger\pinger.c</name>
+      <outputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 37</file>
+        </tool>
+        <tool>
+          <name>__cstat</name>
+          <file> 7</file>
+        </tool>
+      </outputs>
+      <inputs>
+        <tool>
+          <name>BICOMP</name>
+          <file> 28 16 4 10 15 14 13 30 12 35 1 5 2</file>
+        </tool>
+      </inputs>
+    </file>
+    <forcedrebuild>
+      <name>$PROJ_DIR$\..\src\motor_base\motor_base.c</name>
+      <tool>ICC430</tool>
+    </forcedrebuild>
+    <forcedrebuild>
+      <name>$PROJ_DIR$\..\src\uart\uart.c</name>
+      <tool>ICC430</tool>
+    </forcedrebuild>
+    <forcedrebuild>
+      <name>$PROJ_DIR$\..\src\pinger\pinger.c</name>
+      <tool>ICC430</tool>
+    </forcedrebuild>
+    <forcedrebuild>
+      <name>[MULTI_TOOL]</name>
+      <tool>XLINK</tool>
+    </forcedrebuild>
   </configuration>
   <configuration>
     <name>Release</name>

@@ -31,7 +31,7 @@
           <struct_types><Fmt><Key>pinger_t-echoTime</Key><Value>4</Value></Fmt></struct_types>
           <watch_formats>
             
-          <Fmt><Key>{W}Watch-0:(leftPinger.echoTime &amp; 0x0000000F0) >> 4</Key><Value>4</Value></Fmt><Fmt><Key>{W}Watch-0:P2OUT</Key><Value>1</Value></Fmt><Fmt><Key>{W}Watch-0:P2SEL</Key><Value>1</Value></Fmt><Fmt><Key>{W}Watch-0:leftPinger.echoTime &amp; 0x0000000F</Key><Value>4</Value></Fmt><Fmt><Key>{W}Watch-0:leftPinger.echoTime &amp; 0x0000000F0</Key><Value>4</Value></Fmt><Fmt><Key>{W}Watch-0:num</Key><Value>4</Value></Fmt></watch_formats>
+          <Fmt><Key>{W}Watch-0:(leftPinger.echoTime &amp; 0x0000000F0) &gt;&gt; 4</Key><Value>4</Value></Fmt><Fmt><Key>{W}Watch-0:P2OUT</Key><Value>1</Value></Fmt><Fmt><Key>{W}Watch-0:P2SEL</Key><Value>1</Value></Fmt><Fmt><Key>{W}Watch-0:leftPinger.echoTime &amp; 0x0000000F</Key><Value>4</Value></Fmt><Fmt><Key>{W}Watch-0:leftPinger.echoTime &amp; 0x0000000F0</Key><Value>4</Value></Fmt><Fmt><Key>{W}Watch-0:num</Key><Value>4</Value></Fmt></watch_formats>
         </Format>
         
         
