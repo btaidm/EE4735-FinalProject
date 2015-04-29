@@ -1,8 +1,11 @@
+/**
+ *  File: pinger.h
+ */
 #ifndef PINGER_H_
 #define PINGER_H_
 
-#include "helper.h"
 #include <stdint.h>
+#include "helper.h"
 
 /// Struct contains information about Pinger Ports, Pins, and Echo Time
 typedef struct

@@ -1,3 +1,6 @@
+/**
+ *  File: pinger.c
+ */
 #include <msp430x22x4.h>
 #include <stdint.h>
 #include "pinger.h"

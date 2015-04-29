@@ -1,3 +1,6 @@
+/**
+ *  File: motor_base.c
+ */
 #include <msp430x22x4.h>
 #include <stdint.h>
 #include "motor_base.h"

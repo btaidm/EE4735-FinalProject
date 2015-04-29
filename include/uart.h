@@ -1,3 +1,6 @@
+/**
+ *  File: uart.h
+ */
 #ifndef UART_H_
 #define UART_H_
 #include <stdint.h>
@@ -30,10 +33,10 @@ int UartPutChar(char c);
 /// --------------------------------------
 int UartPuts(const char* str);
 
-/// ------------------------------------------
-/// Func: Sends a uint32 over UART in binary
+/// -------------------------------------------------
+/// Func: Sends a uint32 over UART in BigEdian binary
 /// Args: num = uint32 to send
 /// Retn: Always 0
-/// ------------------------------------------
+/// -------------------------------------------------
 int UartPutsUint32(uint32_t num);
 #endif

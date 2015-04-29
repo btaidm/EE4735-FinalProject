@@ -1,3 +1,6 @@
+/**
+ *  File: main.c
+ */
 #include <msp430x22x4.h>
 #include <string.h>
 #include <stdint.h>

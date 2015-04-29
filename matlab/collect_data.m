@@ -1,6 +1,12 @@
+% collect_data.m
+% This script collects data from the eZ430-rf2500
+% for analysing echoes recieved from the SRF04
+% Ultrasonic Rangers
+
 clc
 clear
 
+% What file to save to
 file = 'calibrate-echos-2.mat';
 
 fprintf('Waiting for Start string of %s\n',file)

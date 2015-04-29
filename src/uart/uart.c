@@ -1,11 +1,11 @@
+/**
+ *  File: uart.c
+ */
 #include <msp430x22x4.h>
-#include "helper.h"
 #include <stdint.h>
 #include <string.h>
+#include "helper.h"
 #include "uart.h"
-
-
-
 
 int UartInit(void)
 {

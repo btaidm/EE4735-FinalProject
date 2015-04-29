@@ -1,6 +1,12 @@
+% view_data.m
+% This script plots data from the eZ430-rf2500
+% for analysing echoes recieved from the SRF04
+% Ultrasonic Rangers
+
 clc;
 clear;
 
+% What file to open
 file = '20cm-wide.mat';
 
 clockspeed = 1.1 * 10 ^ 6; % Hz
