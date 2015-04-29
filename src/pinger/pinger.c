@@ -4,20 +4,24 @@
 
 void SetupPinger(pinger_t* pingerPtr)
 {
-    *(pinger->trigger.dir) |= 0x01 << pinger->trigger.pin;
-    *(pinger->trigger.out) &= ~( 0x01 << pinger->trigger.pin);
-    *(pinger->echo.dir) &= ~( 0x01 << pinger->echo.pin);
-    *(pinger->echo.sel) |= ( 0x01 << pinger->echo.pin);
+    // Setup Trigger Pin
+    *(pinger->trigger.dir) |= 0x01 << pinger->trigger.pin; // Dir. = Out
+    *(pinger->trigger.out) &= ~( 0x01 << pinger->trigger.pin); // Trigger = Low
+
+    // Setup Echo Pin
+    *(pinger->echo.dir) &= ~( 0x01 << pinger->echo.pin); // Dir. = In
+    *(pinger->echo.sel) |= ( 0x01 << pinger->echo.pin);  // Capture input
 }
 
 void StartPinger(pinger_t* pingerPtr)
 {
-    P1OUT ^= ( 0x01 << pinger->ledpin);
-    *(pinger->trigger.out) |= ( 0x01 << pinger->trigger.pin);
+    P1OUT ^= ( 0x01 << pinger->ledpin); // Toggle LED Light
+    *(pinger->trigger.out) |= ( 0x01 << pinger->trigger.pin); // Start Trigger
 
-    volatile uint16_t i = 1;
+    // Wait for loop to allow trigger proper time 
+    volatile uint16_t triggerWait = 1;
+    while (triggerWait--) {};
 
-    while (i--) {};
-
+    // Trigger Done, wait for echo
     *(pinger->trigger.out) &= ~( 0x01 << pinger->trigger.pin);
 }

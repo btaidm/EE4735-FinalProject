@@ -9,12 +9,12 @@
 
 uint8_t MotorInit(void)
 {
-    P3SEL = 0x30;
-    UCA0CTL1 |= UCSSEL_2;
-    UCA0BR0 = 104;
-    UCA0BR1 = 0;
-    UCA0MCTL = UCBRS0;
-    UCA0CTL1 &= ~UCSWRST;
+    P3SEL = 0x30;           // Set P3.4 and P3.5 to Tx/Rx
+    UCA0CTL1 |= UCSSEL_2;   // Use SMCLK
+    UCA0BR0 = 104;          // Buad Rate to 9600
+    UCA0BR1 = 0;            // Buad Rate to 9600
+    UCA0MCTL = UCBRS0;      // Map 1MHz -> 9600
+    UCA0CTL1 &= ~UCSWRST;   // State UART State Machine
     return 0;
 }
 

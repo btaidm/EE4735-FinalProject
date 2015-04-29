@@ -9,14 +9,14 @@ typedef struct
 {
     struct
     {
-        PORT_TYPE* out; // GPIO Port Register for trigger pulse
+        PORT_TYPE* out; // GPIO Output Register for trigger pulse
         PORT_TYPE* dir; // GPIO Direction Register for trigger pulse
         uint8_t pin;    // GPIO Pin for trigger pulse
     } trigger; // Trigger Pulse Information
 
     struct
     {
-        PORT_TYPE* sel; // GPIO Port Register for echo pulse
+        PORT_TYPE* sel; // GPIO Select Register for echo pulse
         PORT_TYPE* dir; // GPIO Direction Register for echo pulse
         uint8_t pin;    // GPIO Pin for echo pulse
     } echo; // Echo Pulse Information
