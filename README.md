@@ -106,4 +106,5 @@ Then use standard GDB commands.
 
 ### IAR
 
-Open the workspace in the IAR folder. Use the standard commands for building,programming, and debugging
+Open the workspace in the IAR folder. Use the standard commands for building,
+programming, and debugging
