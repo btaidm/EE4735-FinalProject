@@ -5,10 +5,8 @@
 #include "motor_base.h"
 #include <string.h>
 
-//static char temp[10] = {0};
 
 #define TOTAL_CALBRATION_STEPS 10
-#define DRIVE_METHOD 3
 #define MATLAB_STUFF 0
 #define CYCLES_TO_CM 64
 #define USE_RAW 0
@@ -46,9 +44,6 @@ uint32_t leftHist[HIST_SIZE] = {0};
 uint32_t rightHist[HIST_SIZE] = {0};
 
 uint8_t histCount = 0;
-
-//static const uint32_t CROSS_POINT = 1 * CYCLES_TO_CM * 30;
-
 
 #define MAX_TICKS 10000        // Blink length (loop passes)
 
@@ -267,49 +262,7 @@ static inline void drive(void)
     uart_putsUint32(newRightEcho);
     uart_putsUint32(currentDistance);
 
-#elif DRIVE_METHOD == 1
-
-    if ((FOLLOWING_DISTANCE - DISTANCE_TOL) <= currentDistance && currentDistance <= (FOLLOWING_DISTANCE + DISTANCE_TOL) && drive_state != 0)
-    {
-        motor_stop();
-        drive_state = 0;
-    }
-    else if (currentDistance < (FOLLOWING_DISTANCE - DISTANCE_TOL))
-    {
-        motor_half_speed(REVERSE);
-        drive_state = 2;
-    }
-    else if (currentDistance > (FOLLOWING_DISTANCE + DISTANCE_TOL))
-    {
-        motor_half_speed(FORWARD);
-        drive_state = 1;
-    }
-
-#elif DRIVE_METHOD == 2
-
-    int32_t distanceToTarget = currentDistance - FOLLOWING_DISTANCE;
-
-    if (-DISTANCE_TOL <= distanceToTarget && distanceToTarget <= DISTANCE_TOL)
-    {
-        motor_stop();
-    }
-    else
-    {
-        int8_t speed = distanceToTarget / (SPEED_SLOPE * CYCLES_TO_CM);
-
-        if (distanceToTarget < 0)
-            speed += -SPEED_START_OFFSET;
-        else
-            speed += SPEED_START_OFFSET;
-
-        if (speed >= SPEED_LIMIT) speed = SPEED_LIMIT;
-
-        if (speed <= -SPEED_LIMIT) speed = -SPEED_LIMIT;
-
-        motor_set_both(speed);
-    }
-
-#elif DRIVE_METHOD == 3
+#else
     int32_t distanceToTarget = currentDistance - FOLLOWING_DISTANCE;
 
 #if USE_RAW == 0

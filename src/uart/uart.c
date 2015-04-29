@@ -5,58 +5,10 @@
 #include "uart.h"
 
 
-struct baud_value
+
+
+int uart_init(void)
 {
-    uint32_t baud;
-    uint16_t UCAxBR0;
-    uint16_t UCAxBR1;
-    uint16_t UCAxMCTL;
-};
-
-const struct baud_value baud_tbl[] =
-{
-    {9600, 104, 0, UCBRS0}
-};
-
-
-int uart_init(uart_config_t* config)
-{
-#if 0
-    P3SEL = 0x30;                         // P3.4,5 = USCI_A0 TXD/RXD
-    int status = -1;
-
-    /*USCI should be in reset before configuring - only configure once */
-    if (UCA0CTL1 & UCSWRST)
-    {
-        size_t i;
-
-        /* Set clock source to SMCLK */
-        UCA0CTL1 |= UCSSEL_2;
-
-        /* Find the settings from the baud rate table */
-        for (i = 0; i < ARRAY_SIZE(baud_tbl); i++)
-        {
-            if (baud_tbl[i].baud == config->baud)
-            {
-                break;
-            }
-        }
-
-        if (i < ARRAY_SIZE(baud_tbl))
-        {
-            /* Set the baud rate */
-            UCA0BR0 = baud_tbl[i].UCAxBR0;
-            UCA0BR1 = baud_tbl[i].UCAxBR1;
-            UCA0MCTL = baud_tbl[i].UCAxMCTL;
-
-            /* Enable the USCI peripheral (take it out of reset) */
-            UCA0CTL1 &= ~UCSWRST;
-            status = 0;
-        };
-    }
-
-    return status;
-#else
     P3SEL = 0x30;
     UCA0CTL1 |= UCSSEL_2;
     UCA0BR0 = 104;
@@ -64,7 +16,6 @@ int uart_init(uart_config_t* config)
     UCA0MCTL = UCBRS0;
     UCA0CTL1 &= ~UCSWRST;
     return 0;
-#endif
 }
 
 
@@ -127,43 +78,7 @@ int uart_puts(const char* str)
 
 int uart_putsUint32(uint32_t num)
 {
-#if 0
 
-    while (!(IFG2 & UCA0TXIFG)) {};
-
-    volatile uint8_t c = (uint8_t)TO_HEX((num & 0xF0000000) >> 28);
-
-    UCA0TXBUF = c;
-
-    while (!(IFG2 & UCA0TXIFG)) {};
-
-    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x0F000000) >> 24);
-
-    while (!(IFG2 & UCA0TXIFG)) {};
-
-    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x00F00000) >> 20);
-
-    while (!(IFG2 & UCA0TXIFG)) {};
-
-    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x000F0000) >> 16);
-
-    while (!(IFG2 & UCA0TXIFG)) {};
-
-    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x0000F000) >> 12);
-
-    while (!(IFG2 & UCA0TXIFG)) {};
-
-    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x00000F00) >> 8);
-
-    while (!(IFG2 & UCA0TXIFG)) {};
-
-    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x000000F0) >> 4);
-
-    while (!(IFG2 & UCA0TXIFG)) {};
-
-    UCA0TXBUF = (uint8_t)TO_HEX((num & 0x0000000F) >> 0);
-
-#else
     while (!(IFG2 & UCA0TXIFG)) {};
 
     UCA0TXBUF = (uint8_t)((num & 0xFF000000) >> 24);
@@ -180,7 +95,6 @@ int uart_putsUint32(uint32_t num)
 
     UCA0TXBUF = (uint8_t)((num & 0x000000FF) >> 0);
 
-#endif
     return 0;
 }
 

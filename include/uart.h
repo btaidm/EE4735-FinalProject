@@ -3,13 +3,8 @@
 
 #include <stdint.h>
 
-typedef struct
-{
-    uint32_t baud;
-} uart_config_t;
 
-
-int uart_init(uart_config_t* config);
+int uart_init(void);
 
 char uart_getchar(void);
 

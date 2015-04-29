@@ -11,8 +11,8 @@ DEVICE_LDIR = $(MSP430_DIR)
 IDIR 		= include
 LDIR 		= lib
 
-CF_ALL 		= -g -O2  -mmcu=$(DEVICE) --std=c99
-LF_ALL 		= -L$(LDIR) -L$(DEVICE_LDIR) -T $(DEVICE).ld -g -mmcu=$(DEVICE) --std=c99
+CF_ALL 		= -g -O2  -mmcu=$(DEVICE) -std=c99
+LF_ALL 		= -L$(LDIR) -L$(DEVICE_LDIR) -T $(DEVICE).ld -g -mmcu=$(DEVICE) -std=c99
 
 BUILD_PRE	:= build
 MODULES 	= pinger main motor_base uart
@@ -44,7 +44,6 @@ $(BUILD_DIR):
 
 clean:
 	rm -rf $(BUILD_DIR)
-	$(MAKE) -C proposal $@
 
 prog: all
 	mspdebug rf2500 --fet-force-id MSP430F2274 'prog build/stalker.out'
