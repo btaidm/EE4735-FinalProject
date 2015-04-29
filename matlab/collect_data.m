@@ -2,20 +2,17 @@ clc
 clear
 
 file = 'calibrate-echos-2.mat';
-% finishup = onCleanup(@() clean);
 
 fprintf('Waiting for Start string of %s\n',file)
 
+% Open Serial Port for Data gathering
 bot = serial('/dev/ttyACM0');
-
-s.BytesAvailableFcnCount = 8;
-s.BytesAvailableFcnMode = 'byte';
-s.BytesAvailableFcn = @instrcallback;
 
 fopen(bot);
 
 inString = '';
 
+% Wait for the all clear
 while(~strcmp(inString,'STARTCOL'))
     inString = '';
     if(bot.BytesAvailable >= 8)
