@@ -48,17 +48,17 @@ static const uint8_t SPEED_LIMIT = 90; // %
 
 
 // Lower Tolerance of Pinger Difference for Turning
-static const uint32_t PINGER_OFFSET_TOL_LOWER = CYCLES_TO_CM * 20; //cycles
+static const uint32_t PINGER_OFFSET_TOL_LOWER = CYCLES_TO_CM * 10; //cycles
 // Upper Tolerance of Pinger Difference for Turning
-static const uint32_t PINGER_OFFSET_TOL_UPPER = CYCLES_TO_CM * 60; //cycles
+static const uint32_t PINGER_OFFSET_TOL_UPPER = CYCLES_TO_CM * 50; //cycles
 // Max Distance of Pingers Allowed
 static const uint32_t PINGER_LIMIT = CYCLES_TO_CM * 400; // cycles
 // Slope at which Turn Speed Changes
 static const uint8_t TURN_SPEED_SLOPE = 4; // ^-1 %/cm
 // Lower Turn Speed Limit
-static const uint8_t TURN_SPEED_LOWER = 5; // %
+static const uint8_t TURN_SPEED_LOWER = 10; // %
 // Upper Turn Speed Limits
-static const uint8_t TURN_SPEED_UPPER = 45; // %
+static const uint8_t TURN_SPEED_UPPER = 20; // %
 
 // Starting Calibration Count
 static uint8_t calibrationCount = TOTAL_CALBRATION_STEPS;
@@ -118,12 +118,13 @@ static inline uint32_t GetMedian(uint32_t* hist)
             med = hist[i]; // it is the new median
         }
     }
+
     return med;
 }
 
 /// ---------------------------------------------------------------------
 /// Func: Puts Echo in History Array
-/// 
+///
 static inline void PutValue(uint32_t* hist, uint8_t count, uint32_t value)
 {
     // Index is hist is count & HIST_SIZE to allow for rolling history
@@ -131,7 +132,7 @@ static inline void PutValue(uint32_t* hist, uint8_t count, uint32_t value)
 }
 
 /// ---------------------------------------
-/// Func: Contains the ISR for calculating 
+/// Func: Contains the ISR for calculating
 ///       echo time of left pinger
 /// ---------------------------------------
 __INTERRUPT(TIMERA0_VECTOR) void TimerA0ISR(void)
@@ -143,7 +144,7 @@ __INTERRUPT(TIMERA0_VECTOR) void TimerA0ISR(void)
 
     // Get current timestamp
     uint16_t currStamp = TACCR0;
-    
+
     // Flip Capture Edge
     TACCTL0 ^= CM1 | CM0;
 
@@ -171,10 +172,10 @@ __INTERRUPT(TIMERA0_VECTOR) void TimerA0ISR(void)
                 totalTime = currStamp;
                 currStamp = 0xFFFF;
             }
-            
-            // Add the difference 
+
+            // Add the difference
             totalTime += (currStamp - reTime1);
-            
+
             // That is now our echo time
             leftPinger.echoTime = totalTime;
 
@@ -189,7 +190,7 @@ __INTERRUPT(TIMERA0_VECTOR) void TimerA0ISR(void)
 }
 
 /// ---------------------------------------
-/// Func: Contains the ISR for calculating 
+/// Func: Contains the ISR for calculating
 ///       echo time of right pinger
 /// ---------------------------------------
 __INTERRUPT(TIMERA1_VECTOR) void TimerA1ISR(void)
@@ -235,11 +236,11 @@ __INTERRUPT(TIMERA1_VECTOR) void TimerA1ISR(void)
                         currStamp = 0xFFFF;
                     }
 
-                    // Add the difference 
+                    // Add the difference
                     totalTime += (currStamp - reTime2);
                     // That is now our echo time
                     rightPinger.echoTime = totalTime;
-                    
+
                     // Now that we have 2 new echos, process them and drive
                     __low_power_mode_off_on_exit();
                     break;
@@ -268,10 +269,10 @@ __INTERRUPT(TIMERB0_VECTOR) void TimerB0ISR(void)
 
 inline void SetupTimer(void)
 {
-    // Sel. SMCLK | div by 1 | Continuous Mode 
+    // Sel. SMCLK | div by 1 | Continuous Mode
     TACTL   = TASSEL_2 | ID_0 | MC_2;
-    
-    // Ris Edge | inp = CCI1B | 
+
+    // Ris Edge | inp = CCI1B |
     // Capture | Sync Cap | Enab IRQ
     TACCTL0 = CM_1 | CCIS_1 | SCS | CAP | CCIE;
     TACCTL1 = CM_1 | CCIS_1 | CAP | SCS | CCIE;
@@ -294,7 +295,7 @@ static inline void Calibrate(void)
     // Get the offset for left and right
     int32_t newLeftOffset = CALIBRATING_DISTANCE - leftPinger.echoTime;
     int32_t newRightOffset = CALIBRATING_DISTANCE - rightPinger.echoTime;
-    
+
     // Add them to current offset
     leftOffset += newLeftOffset;
     rightOffset += newRightOffset;
@@ -316,7 +317,7 @@ static inline void Drive(void)
     // First set echoes to calibrated echoes
     uint32_t newLeftEcho = leftPinger.echoTime + leftOffset;
     uint32_t newRightEcho = rightPinger.echoTime + rightOffset;
-    
+
     // Add them to the history
     PutValue(leftHist, histCount, newLeftEcho);
     PutValue(rightHist, histCount, newRightEcho);
@@ -355,17 +356,18 @@ static inline void Drive(void)
     // If Left Pinger is out of limit spin left at high speed
     if (leftPinger.echoTime >= PINGER_LIMIT)
     {
-        MotorSpin(-(TURN_SPEED_UPPER));
+        MotorSpin((TURN_SPEED_LOWER));
     }
     // If Right Pinger is out of limit spin Right at high speed
     else if (rightPinger.echoTime >= PINGER_LIMIT)
     {
-        MotorSpin((TURN_SPEED_UPPER));
+        MotorSpin(-(TURN_SPEED_LOWER));
     }
     // If distance to target is in a safe range
     else if (ABS(distanceToTarget) <= DISTANCE_TOL)
     {
         int8_t speed = 0;
+
         // Check to see if target is outside of safe turn region
         if ( ABS(leftRightDiff) >= PINGER_OFFSET_TOL_LOWER)
         {
@@ -381,10 +383,10 @@ static inline void Drive(void)
                 // Speed is calculated based on a point slope based on a given
                 // slope, min speed, and lower tolerance
                 speed = Sign32(leftRightDiff)
-                      * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER)
-                      / (TURN_SPEED_SLOPE * CYCLES_TO_CM)) + TURN_SPEED_LOWER);
+                        * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER)
+                            / (TURN_SPEED_SLOPE * CYCLES_TO_CM)) + TURN_SPEED_LOWER);
             }
-            
+
             // Spin
             MotorSpin(speed);
         }
@@ -407,7 +409,7 @@ static inline void Drive(void)
         {
             speed = (distanceToTarget * SPEED_SLOPE_REV) / (CYCLES_TO_CM);
         }
-        
+
         // if target is too close
         if (distanceToTarget < 0)
             // back up
@@ -420,7 +422,7 @@ static inline void Drive(void)
         if (speed >= SPEED_LIMIT) speed = SPEED_LIMIT;
 
         if (speed <= -SPEED_LIMIT) speed = -SPEED_LIMIT;
-        
+
         // Branch speed into the separate motors
         int8_t speed1 = speed;
         int8_t speed2 = speed;
@@ -441,14 +443,14 @@ static inline void Drive(void)
                 // Speed is calculated based on a point slope based on a given
                 // slope, min speed, and lower tolerance
                 speed1 += Sign32(leftRightDiff)
-                        * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER) 
-                        / (TURN_SPEED_SLOPE * CYCLES_TO_CM)) 
-                        + TURN_SPEED_LOWER);
-                        
-                speed2 -= Sign32(leftRightDiff) 
-                        * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER) 
-                        / (TURN_SPEED_SLOPE * CYCLES_TO_CM)) 
-                        + TURN_SPEED_LOWER);
+                          * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER)
+                              / (TURN_SPEED_SLOPE * CYCLES_TO_CM))
+                             + TURN_SPEED_LOWER);
+
+                speed2 -= Sign32(leftRightDiff)
+                          * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER)
+                              / (TURN_SPEED_SLOPE * CYCLES_TO_CM))
+                             + TURN_SPEED_LOWER);
             }
         }
 
@@ -478,7 +480,7 @@ void main(void)
 {
     // Disable watch dog - woof!
     WDTCTL = WDTPW | WDTHOLD;                 // Stop watchdog timer
-    
+
     SetupClock();
     SetupPinger(&leftPinger);
     SetupPinger(&rightPinger);
@@ -506,16 +508,16 @@ void main(void)
     {
         // Start with Left pingers
         usePinger = &leftPinger;
-        
+
         // Enable Timer IRQ
         TB0CCTL0 |= CCIE;
-        
+
         // Enable Interrupts
         __enable_interrupt();
         // Enter Low power mode and wait for both left and right
         // pingers to complete
         __low_power_mode_1();
-        
+
         // Done with pingers until next time
         // Want to be sure pingers don't up data at the wrong time
         __disable_interrupt();
@@ -524,7 +526,7 @@ void main(void)
         // Calibrate or Drive
         if (calibrationCount != 0)
         {
-            calibrationCount--; // Decrease Calibration count 
+            calibrationCount--; // Decrease Calibration count
             Calibrate();
         }
         else
