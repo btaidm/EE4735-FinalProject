@@ -1,7 +1,8 @@
 # Stalker Bot
 
 ## Authors
-Tim Bradt --- Evan Bajek
+* Tim Bradt 
+* Evan Bajek
 
 ## Hardware Requirements
 
