@@ -59,9 +59,9 @@ pinger_t rightPinger = { .trigger = { .out = &P2OUT, .dir = &P2DIR, .pin = 1}, \
                          .ledpin = 0
                        };
 
-pinger_t* use_pinger = &leftPinger;
+pinger_t* usePinger = &leftPinger;
 
-static inline uint32_t getMedian(uint32_t* hist, uint8_t count)
+static inline uint32_t GetMedian(uint32_t* hist, uint8_t count)
 {
     uint32_t max = hist[0];
     uint32_t med = 0;
@@ -84,63 +84,63 @@ static inline uint32_t getMedian(uint32_t* hist, uint8_t count)
     return med;
 }
 
-static inline void putValue(uint32_t* hist, uint8_t count, uint32_t value)
+static inline void PutValue(uint32_t* hist, uint8_t count, uint32_t value)
 {
     hist[(count) % HIST_SIZE] = value;
 }
 
 
-__INTERRUPT(TIMERA0_VECTOR) void timara0_isr(void)
+__INTERRUPT(TIMERA0_VECTOR) void TimerA0ISR(void)
 {
-    static uint8_t edge_1 = 0;
-    static uint16_t reTime_1 = 0;
+    static uint8_t edge1 = 0;
+    static uint16_t reTime1 = 0;
 
     uint16_t currStamp = TACCR0;
 
     TACCTL0 ^= CM1 | CM0;
 
-    switch (edge_1)
+    switch (edge1)
     {
         case 0:
         {
-            reTime_1 = currStamp;
-            edge_1 = 1;
+            reTime1 = currStamp;
+            edge1 = 1;
             break;
         }
 
         case 1:
         {
-            edge_1 = 0;
+            edge1 = 0;
             uint32_t totalTime = 0;
 
-            if (currStamp < reTime_1)
+            if (currStamp < reTime1)
             {
                 totalTime = currStamp;
                 currStamp = 0xFFFF;
             }
 
-            totalTime += (currStamp - reTime_1);
+            totalTime += (currStamp - reTime1);
             leftPinger.echoTime = totalTime;
 
-            use_pinger = &rightPinger;
+            usePinger = &rightPinger;
 
             // TB0CTL |= (TBCLR);
             //TB0CTL |= TBIE;
             TB0CCTL0 |= CCIE;
 
-            //start_pinger(&rightPinger);
+            //StartPinger(&rightPinger);
             break;
         }
     }
 }
 
-__INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
+__INTERRUPT(TIMERA1_VECTOR) void TimerA1ISR(void)
 {
     switch (__even_in_range(TAIV, 10))
     {
         case TAIV_TACCR1:
         {
-            static uint8_t edge_2 = 0;
+            static uint8_t edge2 = 0;
             static uint16_t reTime_2 = 0;
 
             uint16_t currStamp = TACCR1;
@@ -150,18 +150,18 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
 
             // P1OUT ^= 0x01;                            // Set pin P1.0 to output
 
-            switch (edge_2)
+            switch (edge2)
             {
                 case 0:
                 {
                     reTime_2 = currStamp;
-                    edge_2 = 1;
+                    edge2 = 1;
                     break;
                 }
 
                 case 1:
                 {
-                    edge_2 = 0;
+                    edge2 = 0;
                     uint32_t totalTime = 0;
 
                     if (currStamp < reTime_2)
@@ -188,7 +188,7 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
         case TAIV_TAIFG:
         {
             TACTL &= ~(TAIE | TAIFG);
-            start_pinger(&leftPinger);
+            StartPinger(&leftPinger);
             break;
         }
 
@@ -197,16 +197,16 @@ __INTERRUPT(TIMERA1_VECTOR) void timera1_isr(void)
     }
 }
 
-__INTERRUPT(TIMERB0_VECTOR) void timerb0_isr(void)
+__INTERRUPT(TIMERB0_VECTOR) void TimerB0ISR(void)
 {
     //static volatile uint8_t pinger = 1;
     //TBCTL &= ~(TBIE | TBIFG);
     //TB0CTL &= ~TBIE;
     TB0CCTL0 &= ~CCIE;
-    start_pinger(use_pinger);
+    StartPinger(usePinger);
 }
 
-inline void setup_timer(void)
+inline void SetupTimer(void)
 {
     TACTL   = TASSEL_2 | ID_0 | MC_2;
     TACCTL0 = CM_1 | CCIS_1 | SCS | CAP | CCIE;
@@ -219,14 +219,14 @@ inline void setup_timer(void)
     //TACCTL2 = CM0 | CCIS_1 | CAP | SCS | CCIE;
 }
 
-inline void setup_clock(void)
+inline void SetupTimer(void)
 {
     BCSCTL1 = CALBC1_1MHZ;                // DCO = 1 MHz
     //BCSCTL2 |= DIVS_3;
     DCOCTL  = CALDCO_1MHZ;                // DCO = 1 MHz
 }
 
-static inline void calibrate(void)
+static inline void Calibrate(void)
 {
     int32_t newLeftOffset = CALIBRATING_DISTANCE - leftPinger.echoTime;
     int32_t newRightOffset = CALIBRATING_DISTANCE - rightPinger.echoTime;
@@ -240,27 +240,27 @@ static inline void calibrate(void)
     }
 }
 
-static inline void drive(void)
+static inline void Drive(void)
 {
     uint32_t newLeftEcho = leftPinger.echoTime + leftOffset;
     uint32_t newRightEcho = rightPinger.echoTime + rightOffset;
-    putValue(leftHist, histCount, newLeftEcho);
-    putValue(rightHist, histCount, newRightEcho);
+    PutValue(leftHist, histCount, newLeftEcho);
+    PutValue(rightHist, histCount, newRightEcho);
 
     if (histCount == 254)
         histCount = 0;
     else
         histCount++;
 
-    newLeftEcho = getMedian(leftHist, histCount);
-    newRightEcho = getMedian(rightHist, histCount);
+    newLeftEcho = GetMedian(leftHist, histCount);
+    newRightEcho = GetMedian(rightHist, histCount);
 
     uint32_t currentDistance = (newLeftEcho + newRightEcho) / 2;
 
 #if MATLAB_STUFF == 1
-    uart_putsUint32(newLeftEcho);
-    uart_putsUint32(newRightEcho);
-    uart_putsUint32(currentDistance);
+    UartPutsUint32(newLeftEcho);
+    UartPutsUint32(newRightEcho);
+    UartPutsUint32(currentDistance);
 
 #else
     int32_t distanceToTarget = currentDistance - FOLLOWING_DISTANCE;
@@ -273,11 +273,11 @@ static inline void drive(void)
 
     if (leftPinger.echoTime >= PINGER_LIMIT)
     {
-        motor_spin(TURN_SPEED_LOWER + TURN_SPEED_UPPER);
+        MotorSpin(TURN_SPEED_LOWER + TURN_SPEED_UPPER);
     }
     else if (rightPinger.echoTime >= PINGER_LIMIT)
     {
-        motor_spin(-(TURN_SPEED_LOWER + TURN_SPEED_UPPER));
+        MotorSpin(-(TURN_SPEED_LOWER + TURN_SPEED_UPPER));
     }
     else if (ABS(distanceToTarget) <= DISTANCE_TOL)
     {
@@ -287,18 +287,18 @@ static inline void drive(void)
         {
             if (ABS(leftRightDiff) > PINGER_OFFSET_TOL_UPPER)
             {
-                speed = sign32(leftRightDiff) * TURN_SPEED_UPPER;
+                speed = Sign32(leftRightDiff) * TURN_SPEED_UPPER;
             }
             else
             {
-                speed = sign32(leftRightDiff) * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER) / (CYCLES_TO_CM)) + TURN_SPEED_LOWER);
+                speed = Sign32(leftRightDiff) * (((ABS(leftRightDiff) - PINGER_OFFSET_TOL_LOWER) / (CYCLES_TO_CM)) + TURN_SPEED_LOWER);
             }
 
-            motor_spin(speed);
+            MotorSpin(speed);
         }
         else
         {
-            motor_stop();
+            MotorStop();
         }
     }
     else
@@ -338,9 +338,9 @@ static inline void drive(void)
 
         if (speed2 <= -SPEED_LIMIT) speed2 = -SPEED_LIMIT;
 
-        motor_set(speed1, MOTOR_1);
-        motor_set(speed2, MOTOR_2);
-        //motor_set_both(speed);
+        MotorSet(speed1, MOTOR_1);
+        MotorSet(speed2, MOTOR_2);
+        //MotorSetBoth(speed);
     }
 
 #endif
@@ -350,44 +350,37 @@ static inline void drive(void)
 void main(void)
 {
     WDTCTL = WDTPW | WDTHOLD;                 // Stop watchdog timer
-    P2SEL = 0; // }
-    // else
-    // {
-    //     if (leftRightDiff < 0)
-    //         motor_spin(-TURN_SPEED);
-    //     else
-    //         motor_spin(TURN_SPEED);
-    // }
-    setup_timer();
-    setup_pinger(&leftPinger);
-    setup_pinger(&rightPinger);
+    P2SEL = 0;
+    SetupTimer();
+    SetupPinger(&leftPinger);
+    SetupPinger(&rightPinger);
 
-    setup_clock();
+    SetupTimer();
 
 #if MATLAB_STUFF == 1
-    uart_init(&config);
+    UartInit(&config);
 #else
-    motor_init();
+    MotorInit();
 #endif
 
 #if MATLAB_STUFF == 1
-    uart_puts("STARTCOL");
+    UartPuts("STARTCOL");
 #endif
     P1DIR |= 0x03;                            // Set pin P1.0 to output
     P1OUT &= ~0x03;
     P1OUT |= 0x01;
 
     //P2SEL2 = 0;
-    //motor_full_speed(FORWARD);
+    //MotorFullSpeed(FORWARD);
 
 
     while ( 1)
     {
         // Get the Pinger Distances
-        //start_pinger(leftPinger);
-        // start_pinger(rightPinger);
+        //StartPinger(leftPinger);
+        // StartPinger(rightPinger);
         //Go to low Power Mode
-        use_pinger = &leftPinger;
+        usePinger = &leftPinger;
         //TB0CTL |= (TBCLR);
         //TB0CTL |= TBIE;
         TB0CCTL0 |= CCIE;
@@ -397,16 +390,16 @@ void main(void)
         __disable_interrupt();
 
 
-        // Calibrate or drive
+        // Calibrate or Drive
         if (calibrationCount != 0)
         {
             calibrationCount--;
-            calibrate();
+            Calibrate();
         }
         else
         {
-            //motor_full_speed(FORWARD);
-            drive();
+            //MotorFullSpeed(FORWARD);
+            Drive();
 
         }
     }

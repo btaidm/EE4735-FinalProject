@@ -7,7 +7,7 @@
 
 
 
-int uart_init(void)
+int UartInit(void)
 {
     P3SEL = 0x30;
     UCA0CTL1 |= UCSSEL_2;
@@ -19,7 +19,7 @@ int uart_init(void)
 }
 
 
-char uart_getchar(void)
+char UartGetChar(void)
 {
     int chr = -1;
 
@@ -31,10 +31,10 @@ char uart_getchar(void)
     return chr;
 }
 
-int uart_putchar(char c)
+int UartPutChar(char c)
 {
     /* Wait for the transmit buffer to be ready */
-    while (!(IFG2 & UCA0TXIFG));
+    while (!(IFG2 & UCA0TXIFG)) {};
 
     /* Transmit data */
     UCA0TXBUF = (char ) c;
@@ -42,7 +42,7 @@ int uart_putchar(char c)
     return 0;
 }
 
-int uart_puts(const char* str)
+int UartPuts(const char* str)
 {
     int status = -1;
 
@@ -76,7 +76,7 @@ int uart_puts(const char* str)
 
 
 
-int uart_putsUint32(uint32_t num)
+int UartPutsUint32(uint32_t num)
 {
 
     while (!(IFG2 & UCA0TXIFG)) {};

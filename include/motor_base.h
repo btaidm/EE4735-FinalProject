@@ -18,32 +18,32 @@ enum MOTOR
 };
 
 
-uint8_t motor_init(void);
+uint8_t MotorInit(void);
 
-void motor_stop(void);
+void MotorStop(void);
 
-void motor_set(int8_t speed, enum MOTOR motor);
+void MotorSet(int8_t speed, enum MOTOR motor);
 
-inline void motor_set_both(int8_t speed)
+inline void MotorSetBoth(int8_t speed)
 {
-    motor_set(speed, MOTOR_1);
-    motor_set(speed, MOTOR_2);
+    MotorSet(speed, MOTOR_1);
+    MotorSet(speed, MOTOR_2);
 }
 
-inline void motor_full_speed(enum DIRECTION dir)
+inline void MotorFullSpeed(enum DIRECTION dir)
 {
-    motor_set_both(dir * 100);
+    MotorSetBoth(dir * 100);
 }
 
-inline void motor_half_speed(enum DIRECTION dir)
+inline void MotorHalfSpeed(enum DIRECTION dir)
 {
-    motor_set_both(dir * 50);
+    MotorSetBoth(dir * 50);
 }
 
-inline void motor_spin(int8_t speed)
+inline void MotorSpin(int8_t speed)
 {
-    motor_set(speed, MOTOR_1);
-    motor_set(-speed, MOTOR_2);
+    MotorSet(speed, MOTOR_1);
+    MotorSet(-speed, MOTOR_2);
 }
 
 

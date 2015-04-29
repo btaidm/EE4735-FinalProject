@@ -25,8 +25,8 @@ typedef struct
 
 } pinger_t;
 
-void setup_pinger(pinger_t* pinger);
+void SetupPinger(pinger_t* pinger);
 
-void start_pinger(pinger_t* pinger);
+void StartPinger(pinger_t* pinger);
 
 #endif

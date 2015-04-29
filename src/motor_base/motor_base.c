@@ -7,7 +7,7 @@
 #define MAP_SPEED_MOTOR1(x) MAP_SPEED(x, 1, 127)
 #define MAP_SPEED_MOTOR2(x) MAP_SPEED(x, 128, 255)
 
-uint8_t motor_init(void)
+uint8_t MotorInit(void)
 {
     P3SEL = 0x30;
     UCA0CTL1 |= UCSSEL_2;
@@ -18,7 +18,7 @@ uint8_t motor_init(void)
     return 0;
 }
 
-void motor_stop(void)
+void MotorStop(void)
 {
     /* Wait for the transmit buffer to be ready */
     while (!(IFG2 & UCA0TXIFG));
@@ -27,7 +27,7 @@ void motor_stop(void)
     UCA0TXBUF = 0;
 }
 
-void motor_set(int8_t speed,  enum MOTOR motor)
+void MotorSet(int8_t speed,  enum MOTOR motor)
 {
 #if FLIPPED_BASE
     speed = -speed;
@@ -38,21 +38,21 @@ void motor_set(int8_t speed,  enum MOTOR motor)
         case MOTOR_1:
         {
 
-            uint8_t motor_speed = MAP_SPEED_MOTOR1(speed);
+            uint8_t motorSpeed = MAP_SPEED_MOTOR1(speed);
 
             while (!(IFG2 & UCA0TXIFG));
 
-            UCA0TXBUF = motor_speed;
+            UCA0TXBUF = motorSpeed;
             break;
         }
 
         case MOTOR_2:
         {
-            uint8_t motor_speed = MAP_SPEED_MOTOR2(speed);
+            uint8_t motorSpeed = MAP_SPEED_MOTOR2(speed);
 
             while (!(IFG2 & UCA0TXIFG));
 
-            UCA0TXBUF = motor_speed;
+            UCA0TXBUF = motorSpeed;
             break;
         }
     }
